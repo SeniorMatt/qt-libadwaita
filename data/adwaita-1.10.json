@@ -1,0 +1,2643 @@
+{
+ "_meta": {
+  "libadwaita": "1.10.0",
+  "gnome": "51",
+  "source_tag": "libadwaita 1.10.0 (src/stylesheet/*.scss, src/adw-accent-color.c, src/adw-color-utils.c)",
+  "units": "px (CSS px = Qt logical px at 1x; GTK scale factor multiplies)",
+  "colors": "r,g,b 0-255, a 0-1 (non-premultiplied)",
+  "notes": [
+   "Values marked runtime_computed are not constants in CSS; implement the given algorithm.",
+   "High contrast (prefers-contrast: more) does NOT change the palette; it changes opacities, adds 1px borders (box-shadow inset) and focus ring alpha.",
+   "currentColor = the widget's own foreground colour at that moment; mixes are color-mix(in srgb, currentColor P%, transparent) = fg colour with alpha P."
+  ]
+ },
+ "named_colors_source": "src/stylesheet/_colors.scss",
+ "accent": {
+  "palette": {
+   "blue": {
+    "r": 53,
+    "g": 132,
+    "b": 228,
+    "a": 1.0
+   },
+   "teal": {
+    "r": 33,
+    "g": 144,
+    "b": 164,
+    "a": 1.0
+   },
+   "green": {
+    "r": 58,
+    "g": 148,
+    "b": 74,
+    "a": 1.0
+   },
+   "yellow": {
+    "r": 200,
+    "g": 136,
+    "b": 0,
+    "a": 1.0
+   },
+   "orange": {
+    "r": 237,
+    "g": 91,
+    "b": 0,
+    "a": 1.0
+   },
+   "red": {
+    "r": 230,
+    "g": 45,
+    "b": 66,
+    "a": 1.0
+   },
+   "pink": {
+    "r": 213,
+    "g": 97,
+    "b": 153,
+    "a": 1.0
+   },
+   "purple": {
+    "r": 145,
+    "g": 65,
+    "b": 172,
+    "a": 1.0
+   },
+   "slate": {
+    "r": 111,
+    "g": 131,
+    "b": 150,
+    "a": 1.0
+   }
+  },
+  "accent_fg": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 1.0
+  },
+  "default": "blue",
+  "standalone_algorithm": {
+   "css": "--accent-color: oklab(from var(--accent-bg-color) min(l,0.5) a b) [light]; max(l,0.85) [dark] (_colors.scss:25, :88; _palette block :152-160)",
+   "steps": [
+    "rgb8 -> /255 -> sRGB EOTF (v>=0.04045 ? ((v+0.055)/1.055)^2.4 : v/12.92) -> linear",
+    "linear -> Oklab (Ottosson matrix, adw-color-utils.c linear_srgb_to_oklab)",
+    "L = dark ? max(L,0.85) : min(L,0.5); a,b unchanged",
+    "Oklab -> linear sRGB -> gamma (v>0.0031308 ? 1.055*v^(1/2.4)-0.055 : 12.92*v) -> clamp each channel to [0,1]; alpha unchanged"
+   ],
+   "oklab_matrices": {
+    "lin_to_lms": [
+     [
+      0.4122214708,
+      0.5363325363,
+      0.0514459929
+     ],
+     [
+      0.2119034982,
+      0.6806995451,
+      0.1073969566
+     ],
+     [
+      0.0883024619,
+      0.2817188376,
+      0.6299787005
+     ]
+    ],
+    "lms_cbrt_to_lab": [
+     [
+      0.2104542553,
+      0.793617785,
+      -0.0040720468
+     ],
+     [
+      1.9779984951,
+      -2.428592205,
+      0.4505937099
+     ],
+     [
+      0.0259040371,
+      0.7827717662,
+      -0.808675766
+     ]
+    ],
+    "lab_to_lms_cbrt": [
+     [
+      1,
+      0.3963377774,
+      0.2158037573
+     ],
+     [
+      1,
+      -0.1055613458,
+      -0.0638541728
+     ],
+     [
+      1,
+      -0.0894841775,
+      -1.291485548
+     ]
+    ],
+    "lms_to_lin": [
+     [
+      4.0767416621,
+      -3.3077115913,
+      0.2309699292
+     ],
+     [
+      -1.2684380046,
+      2.6097574011,
+      -0.3413193965
+     ],
+     [
+      -0.0041960863,
+      -0.7034186147,
+      1.707614701
+     ]
+    ]
+   },
+   "applies_to": [
+    "accent",
+    "destructive",
+    "success",
+    "warning",
+    "error"
+   ],
+   "osd_and_toast": "inside .osd / toast / dark popovers-in-osd the dark variant (max(l,0.85)) is forced via --standalone-color-oklab (_common.scss:41, _misc.scss:44); toggle-group.osd checked forces light variant (_toggle-group.scss:111)",
+   "runtime_computed": true
+  },
+  "standalone_resolved_hex": {
+   "light": {
+    "blue": "#0461be",
+    "teal": "#007184",
+    "green": "#15772e",
+    "yellow": "#905300",
+    "orange": "#b62200",
+    "red": "#c00023",
+    "pink": "#a2326c",
+    "purple": "#8939a4",
+    "slate": "#526678"
+   },
+   "dark": {
+    "blue": "#81d0ff",
+    "teal": "#7bdff4",
+    "green": "#8de698",
+    "yellow": "#ffc057",
+    "orange": "#ff9c5b",
+    "red": "#ff888c",
+    "pink": "#ffa0d8",
+    "purple": "#fba7ff",
+    "slate": "#bbd1e5"
+   }
+  },
+  "portal_mapping": {
+   "source": "src/adw-settings-impl-portal.c:125-141 get_fdo_accent_color; src/adw-accent-color.c adw_accent_color_nearest_from_rgba",
+   "input": "org.freedesktop.appearance accent-color (ddd) r,g,b in 0..1; any component <0 or >1 (unset is -1) => BLUE",
+   "algorithm": "input is gamma-encoded sRGB; adw_rgb_to_oklch applies the sRGB EOTF -> linear -> Oklab -> OKLCH (C=hypot(a,b), h=atan2(b,a) in degrees, mod 360); then the first matching rule below (top to bottom)",
+   "rules": [
+    [
+     "C < 0.04",
+     "slate"
+    ],
+    [
+     "h > 345",
+     "pink"
+    ],
+    [
+     "h > 280",
+     "purple"
+    ],
+    [
+     "h > 230",
+     "blue"
+    ],
+    [
+     "h > 175",
+     "teal"
+    ],
+    [
+     "h > 115",
+     "green"
+    ],
+    [
+     "h > 75.5",
+     "yellow"
+    ],
+    [
+     "h > 35",
+     "orange"
+    ],
+    [
+     "h > 10",
+     "red"
+    ],
+    [
+     "else (h<=10)",
+     "pink"
+    ]
+   ],
+   "gsettings_fallback": "org.gnome.desktop.interface accent-color enum string blue|teal|green|yellow|orange|red|pink|purple|slate (adw-settings.c:125-180)",
+   "note": "Lightness is ignored; mapping is by hue and chroma only. Result is one of the 9 palette entries; libadwaita never uses the arbitrary portal colour directly."
+  },
+  "derived_from_accent_bg": {
+   "link": "--accent-color",
+   "link_visited": "color-mix(in srgb, accent-color 80%, view-fg-color)",
+   "focus_ring": "color-mix(in srgb, accent-color 50% [hc 80%], transparent)",
+   "view_selected": "accent-bg-color @ alpha 0.25 / hover 0.32 / active 0.39",
+   "text_selection_focused": "accent-bg-color @ 0.30 (gtk selection:focus-within, _common.scss:60); unfocused: view-fg-color @ 0.10",
+   "osd_link": "color-mix(in srgb, accent-bg 50%, white)",
+   "osd_link_visited": "color-mix(in srgb, accent-bg 75%, white)"
+  }
+ },
+ "schemes": {
+  "light": {
+   "colors": {
+    "destructive_bg": {
+     "r": 224,
+     "g": 27,
+     "b": 36,
+     "a": 1.0
+    },
+    "destructive_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "success_bg": {
+     "r": 46,
+     "g": 194,
+     "b": 126,
+     "a": 1.0
+    },
+    "success_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "warning_bg": {
+     "r": 229,
+     "g": 165,
+     "b": 10,
+     "a": 1.0
+    },
+    "warning_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 0,
+     "a": 0.8
+    },
+    "error_bg": {
+     "r": 224,
+     "g": 27,
+     "b": 36,
+     "a": 1.0
+    },
+    "error_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "window_bg": {
+     "r": 250,
+     "g": 250,
+     "b": 251,
+     "a": 1.0
+    },
+    "window_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "view_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "view_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "headerbar_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "headerbar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "headerbar_backdrop": {
+     "r": 250,
+     "g": 250,
+     "b": 251,
+     "a": 1.0
+    },
+    "headerbar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.12
+    },
+    "headerbar_darker_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.12
+    },
+    "sidebar_bg": {
+     "r": 235,
+     "g": 235,
+     "b": 237,
+     "a": 1.0
+    },
+    "sidebar_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "sidebar_backdrop": {
+     "r": 242,
+     "g": 242,
+     "b": 244,
+     "a": 1.0
+    },
+    "sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "secondary_sidebar_bg": {
+     "r": 243,
+     "g": 243,
+     "b": 245,
+     "a": 1.0
+    },
+    "secondary_sidebar_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "secondary_sidebar_backdrop": {
+     "r": 246,
+     "g": 246,
+     "b": 250,
+     "a": 1.0
+    },
+    "secondary_sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "secondary_sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "card_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "card_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "card_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "dialog_bg": {
+     "r": 250,
+     "g": 250,
+     "b": 251,
+     "a": 1.0
+    },
+    "dialog_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "popover_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "popover_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "popover_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "thumbnail_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "thumbnail_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "scrollbar_outline": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "active_toggle_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "active_toggle_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "overview_bg": {
+     "r": 243,
+     "g": 243,
+     "b": 245,
+     "a": 1.0
+    },
+    "overview_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    }
+   },
+   "standalone_semantic_colors_hex": {
+    "destructive_color": "#c30000",
+    "success_color": "#007c3d",
+    "warning_color": "#905400",
+    "error_color": "#c30000"
+   },
+   "accent_standalone_hex": {
+    "blue": "#0461be",
+    "teal": "#007184",
+    "green": "#15772e",
+    "yellow": "#905300",
+    "orange": "#b62200",
+    "red": "#c00023",
+    "pink": "#a2326c",
+    "purple": "#8939a4",
+    "slate": "#526678"
+   },
+   "opacities": {
+    "border": 0.15,
+    "dim": 0.55,
+    "disabled": 0.5,
+    "focus_ring_alpha": 0.5,
+    "dimmer": 0.3,
+    "strong_disabled": 0.3
+   },
+   "derived_hex": {
+    "opaque_button_default_bg": "#d4d4d6",
+    "insensitive_bg_color(window 60% + view)": "#fcfcfd"
+   }
+  },
+  "dark": {
+   "colors": {
+    "destructive_bg": {
+     "r": 192,
+     "g": 28,
+     "b": 40,
+     "a": 1.0
+    },
+    "destructive_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "success_bg": {
+     "r": 38,
+     "g": 162,
+     "b": 105,
+     "a": 1.0
+    },
+    "success_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "warning_bg": {
+     "r": 205,
+     "g": 147,
+     "b": 9,
+     "a": 1.0
+    },
+    "warning_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 0,
+     "a": 0.8
+    },
+    "error_bg": {
+     "r": 192,
+     "g": 28,
+     "b": 40,
+     "a": 1.0
+    },
+    "error_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "window_bg": {
+     "r": 34,
+     "g": 34,
+     "b": 38,
+     "a": 1.0
+    },
+    "window_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "view_bg": {
+     "r": 29,
+     "g": 29,
+     "b": 32,
+     "a": 1.0
+    },
+    "view_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_bg": {
+     "r": 46,
+     "g": 46,
+     "b": 50,
+     "a": 1.0
+    },
+    "headerbar_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_border": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_backdrop": {
+     "r": 34,
+     "g": 34,
+     "b": 38,
+     "a": 1.0
+    },
+    "headerbar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "headerbar_darker_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 12,
+     "a": 0.9
+    },
+    "sidebar_bg": {
+     "r": 46,
+     "g": 46,
+     "b": 50,
+     "a": 1.0
+    },
+    "sidebar_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "sidebar_backdrop": {
+     "r": 40,
+     "g": 40,
+     "b": 44,
+     "a": 1.0
+    },
+    "sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "secondary_sidebar_bg": {
+     "r": 40,
+     "g": 40,
+     "b": 44,
+     "a": 1.0
+    },
+    "secondary_sidebar_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "secondary_sidebar_backdrop": {
+     "r": 37,
+     "g": 37,
+     "b": 41,
+     "a": 1.0
+    },
+    "secondary_sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "secondary_sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "card_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 0.08
+    },
+    "card_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "card_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "dialog_bg": {
+     "r": 54,
+     "g": 54,
+     "b": 58,
+     "a": 1.0
+    },
+    "dialog_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "popover_bg": {
+     "r": 54,
+     "g": 54,
+     "b": 58,
+     "a": 1.0
+    },
+    "popover_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "popover_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "thumbnail_bg": {
+     "r": 57,
+     "g": 57,
+     "b": 61,
+     "a": 1.0
+    },
+    "thumbnail_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "scrollbar_outline": {
+     "r": 0,
+     "g": 0,
+     "b": 12,
+     "a": 0.95
+    },
+    "active_toggle_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 0.2
+    },
+    "active_toggle_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "overview_bg": {
+     "r": 40,
+     "g": 40,
+     "b": 44,
+     "a": 1.0
+    },
+    "overview_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    }
+   },
+   "standalone_semantic_colors_hex": {
+    "destructive_color": "#ff938c",
+    "success_color": "#78e9ab",
+    "warning_color": "#ffc252",
+    "error_color": "#ff938c"
+   },
+   "accent_standalone_hex": {
+    "blue": "#81d0ff",
+    "teal": "#7bdff4",
+    "green": "#8de698",
+    "yellow": "#ffc057",
+    "orange": "#ff9c5b",
+    "red": "#ff888c",
+    "pink": "#ffa0d8",
+    "purple": "#fba7ff",
+    "slate": "#bbd1e5"
+   },
+   "opacities": {
+    "border": 0.15,
+    "dim": 0.55,
+    "disabled": 0.5,
+    "focus_ring_alpha": 0.5,
+    "dimmer": 0.3,
+    "strong_disabled": 0.3
+   },
+   "derived_hex": {
+    "opaque_button_default_bg": "#434347",
+    "insensitive_bg_color(window 60% + view)": "#202024"
+   }
+  },
+  "hc-light": {
+   "colors": {
+    "destructive_bg": {
+     "r": 224,
+     "g": 27,
+     "b": 36,
+     "a": 1.0
+    },
+    "destructive_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "success_bg": {
+     "r": 46,
+     "g": 194,
+     "b": 126,
+     "a": 1.0
+    },
+    "success_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "warning_bg": {
+     "r": 229,
+     "g": 165,
+     "b": 10,
+     "a": 1.0
+    },
+    "warning_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 0,
+     "a": 0.8
+    },
+    "error_bg": {
+     "r": 224,
+     "g": 27,
+     "b": 36,
+     "a": 1.0
+    },
+    "error_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "window_bg": {
+     "r": 250,
+     "g": 250,
+     "b": 251,
+     "a": 1.0
+    },
+    "window_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "view_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "view_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "headerbar_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "headerbar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "headerbar_backdrop": {
+     "r": 250,
+     "g": 250,
+     "b": 251,
+     "a": 1.0
+    },
+    "headerbar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.12
+    },
+    "headerbar_darker_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.12
+    },
+    "sidebar_bg": {
+     "r": 235,
+     "g": 235,
+     "b": 237,
+     "a": 1.0
+    },
+    "sidebar_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "sidebar_backdrop": {
+     "r": 242,
+     "g": 242,
+     "b": 244,
+     "a": 1.0
+    },
+    "sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "secondary_sidebar_bg": {
+     "r": 243,
+     "g": 243,
+     "b": 245,
+     "a": 1.0
+    },
+    "secondary_sidebar_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "secondary_sidebar_backdrop": {
+     "r": 246,
+     "g": 246,
+     "b": 250,
+     "a": 1.0
+    },
+    "secondary_sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "secondary_sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "card_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "card_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "card_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "dialog_bg": {
+     "r": 250,
+     "g": 250,
+     "b": 251,
+     "a": 1.0
+    },
+    "dialog_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "popover_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "popover_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "popover_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "thumbnail_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "thumbnail_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.07
+    },
+    "scrollbar_outline": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "active_toggle_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "active_toggle_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    },
+    "overview_bg": {
+     "r": 243,
+     "g": 243,
+     "b": 245,
+     "a": 1.0
+    },
+    "overview_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.8
+    }
+   },
+   "standalone_semantic_colors_hex": {
+    "destructive_color": "#c30000",
+    "success_color": "#007c3d",
+    "warning_color": "#905400",
+    "error_color": "#c30000"
+   },
+   "accent_standalone_hex": {
+    "blue": "#0461be",
+    "teal": "#007184",
+    "green": "#15772e",
+    "yellow": "#905300",
+    "orange": "#b62200",
+    "red": "#c00023",
+    "pink": "#a2326c",
+    "purple": "#8939a4",
+    "slate": "#526678"
+   },
+   "opacities": {
+    "border": 0.5,
+    "dim": 0.9,
+    "disabled": 0.4,
+    "focus_ring_alpha": 0.8,
+    "dimmer": 0.8,
+    "strong_disabled": 0.3
+   },
+   "derived_hex": {
+    "opaque_button_default_bg": "#d4d4d6",
+    "insensitive_bg_color(window 60% + view)": "#fcfcfd"
+   }
+  },
+  "hc-dark": {
+   "colors": {
+    "destructive_bg": {
+     "r": 192,
+     "g": 28,
+     "b": 40,
+     "a": 1.0
+    },
+    "destructive_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "success_bg": {
+     "r": 38,
+     "g": 162,
+     "b": 105,
+     "a": 1.0
+    },
+    "success_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "warning_bg": {
+     "r": 205,
+     "g": 147,
+     "b": 9,
+     "a": 1.0
+    },
+    "warning_fg": {
+     "r": 0,
+     "g": 0,
+     "b": 0,
+     "a": 0.8
+    },
+    "error_bg": {
+     "r": 192,
+     "g": 28,
+     "b": 40,
+     "a": 1.0
+    },
+    "error_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "window_bg": {
+     "r": 34,
+     "g": 34,
+     "b": 38,
+     "a": 1.0
+    },
+    "window_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "view_bg": {
+     "r": 29,
+     "g": 29,
+     "b": 32,
+     "a": 1.0
+    },
+    "view_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_bg": {
+     "r": 46,
+     "g": 46,
+     "b": 50,
+     "a": 1.0
+    },
+    "headerbar_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_border": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "headerbar_backdrop": {
+     "r": 34,
+     "g": 34,
+     "b": 38,
+     "a": 1.0
+    },
+    "headerbar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "headerbar_darker_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 12,
+     "a": 0.9
+    },
+    "sidebar_bg": {
+     "r": 46,
+     "g": 46,
+     "b": 50,
+     "a": 1.0
+    },
+    "sidebar_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "sidebar_backdrop": {
+     "r": 40,
+     "g": 40,
+     "b": 44,
+     "a": 1.0
+    },
+    "sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "secondary_sidebar_bg": {
+     "r": 40,
+     "g": 40,
+     "b": 44,
+     "a": 1.0
+    },
+    "secondary_sidebar_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "secondary_sidebar_backdrop": {
+     "r": 37,
+     "g": 37,
+     "b": 41,
+     "a": 1.0
+    },
+    "secondary_sidebar_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "secondary_sidebar_border": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "card_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 0.08
+    },
+    "card_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "card_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.36
+    },
+    "dialog_bg": {
+     "r": 54,
+     "g": 54,
+     "b": 58,
+     "a": 1.0
+    },
+    "dialog_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "popover_bg": {
+     "r": 54,
+     "g": 54,
+     "b": 58,
+     "a": 1.0
+    },
+    "popover_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "popover_shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "thumbnail_bg": {
+     "r": 57,
+     "g": 57,
+     "b": 61,
+     "a": 1.0
+    },
+    "thumbnail_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "shade": {
+     "r": 0,
+     "g": 0,
+     "b": 6,
+     "a": 0.25
+    },
+    "scrollbar_outline": {
+     "r": 0,
+     "g": 0,
+     "b": 12,
+     "a": 0.95
+    },
+    "active_toggle_bg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 0.2
+    },
+    "active_toggle_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    },
+    "overview_bg": {
+     "r": 40,
+     "g": 40,
+     "b": 44,
+     "a": 1.0
+    },
+    "overview_fg": {
+     "r": 255,
+     "g": 255,
+     "b": 255,
+     "a": 1.0
+    }
+   },
+   "standalone_semantic_colors_hex": {
+    "destructive_color": "#ff938c",
+    "success_color": "#78e9ab",
+    "warning_color": "#ffc252",
+    "error_color": "#ff938c"
+   },
+   "accent_standalone_hex": {
+    "blue": "#81d0ff",
+    "teal": "#7bdff4",
+    "green": "#8de698",
+    "yellow": "#ffc057",
+    "orange": "#ff9c5b",
+    "red": "#ff888c",
+    "pink": "#ffa0d8",
+    "purple": "#fba7ff",
+    "slate": "#bbd1e5"
+   },
+   "opacities": {
+    "border": 0.5,
+    "dim": 0.9,
+    "disabled": 0.4,
+    "focus_ring_alpha": 0.8,
+    "dimmer": 0.8,
+    "strong_disabled": 0.3
+   },
+   "derived_hex": {
+    "opaque_button_default_bg": "#434347",
+    "insensitive_bg_color(window 60% + view)": "#202024"
+   }
+  }
+ },
+ "scheme_notes": {
+  "hc-light/hc-dark": "identical colour tokens to light/dark; only 'opacities' differ and widget rules marked hc",
+  "light/dark switch": "portal org.freedesktop.appearance color-scheme (1=dark) via AdwStyleManager; hc via portal 'contrast'==1 (adw-settings-impl-portal.c:169) or gsettings high-contrast"
+ },
+ "other_colors": {
+  "border_color": {
+   "formula": "currentColor @ border-opacity",
+   "light": 0.15,
+   "hc": 0.5,
+   "src": "_colors.scss:245,323"
+  },
+  "headerbar_border_color_effective": "headerbar-border-color @ border-opacity (headerbar fg colour with alpha)",
+  "hover": 0.07,
+  "active": 0.16,
+  "selected": 0.1,
+  "selected_hover": 0.13,
+  "selected_active": 0.19,
+  "view_hover": 0.04,
+  "view_active": 0.08,
+  "view_selected_accent": [
+   0.25,
+   0.32,
+   0.39
+  ],
+  "trough": {
+   "normal": 0.15,
+   "hover": 0.2,
+   "active": 0.25,
+   "hc": [
+    0.3,
+    0.4,
+    0.5
+   ]
+  },
+  "slider_color": "color-mix(white 80%, view-bg-color)",
+  "slider_hover": "#ffffff",
+  "osd_fg": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0.9
+  },
+  "osd_bg": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0.7
+  },
+  "osd_button_bg": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0.65
+  },
+  "toast_bg": {
+   "r": 80,
+   "g": 80,
+   "b": 83,
+   "a": 1.0
+  },
+  "toast_fg": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 1.0
+  },
+  "tooltip_bg": {
+   "r": 0,
+   "g": 0,
+   "b": 6,
+   "a": 0.8
+  },
+  "tooltip_fg": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 1.0
+  },
+  "tooltip_border": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0.1
+  },
+  "window_outline": {
+   "normal": {
+    "r": 255,
+    "g": 255,
+    "b": 255,
+    "a": 0.07
+   },
+   "hc": {
+    "r": 255,
+    "g": 255,
+    "b": 255,
+    "a": 0.3
+   }
+  },
+  "drop_target": "accent-bg-color",
+  "banner_color": {
+   "r": 125,
+   "g": 125,
+   "b": 131,
+   "a": 1.0
+  },
+  "banner_bg": "color-mix(banner-color 30% [backdrop 15%], window-bg-color)",
+  "insensitive_bg": "color-mix(window-bg 60%, view-bg)",
+  "insensitive_fg": "window-fg @ 0.5 (compat-colors.scss)",
+  "src": "_colors.scss:244-320"
+ },
+ "base_palette": {
+  "blue": [
+   "#99c1f1",
+   "#62a0ea",
+   "#3584e4",
+   "#1c71d8",
+   "#1a5fb4"
+  ],
+  "green": [
+   "#8ff0a4",
+   "#57e389",
+   "#33d17a",
+   "#2ec27e",
+   "#26a269"
+  ],
+  "yellow": [
+   "#f9f06b",
+   "#f8e45c",
+   "#f6d32d",
+   "#f5c211",
+   "#e5a50a"
+  ],
+  "orange": [
+   "#ffbe6f",
+   "#ffa348",
+   "#ff7800",
+   "#e66100",
+   "#c64600"
+  ],
+  "red": [
+   "#f66151",
+   "#ed333b",
+   "#e01b24",
+   "#c01c28",
+   "#a51d2d"
+  ],
+  "purple": [
+   "#dc8add",
+   "#c061cb",
+   "#9141ac",
+   "#813d9c",
+   "#613583"
+  ],
+  "brown": [
+   "#cdab8f",
+   "#b5835a",
+   "#986a44",
+   "#865e3c",
+   "#63452c"
+  ],
+  "light": [
+   "#ffffff",
+   "#f6f5f4",
+   "#deddda",
+   "#c0bfbc",
+   "#9a9996"
+  ],
+  "dark": [
+   "#77767b",
+   "#5e5c64",
+   "#3d3846",
+   "#241f31",
+   "#000000"
+  ],
+  "src": "_palette.scss:1-50"
+ },
+ "radii": {
+  "button": 9,
+  "card": 12,
+  "menu_item": 9,
+  "popover": 15,
+  "dialog_sheet": 15,
+  "window_csd": 15,
+  "alert_dialog": 18,
+  "switch": 14,
+  "check": 6,
+  "checkbutton_focus": 9,
+  "circular_pill": 9999,
+  "tab_thumbnail": 16,
+  "toast": 150,
+  "toggle_group_inner": 6,
+  "frame": 12,
+  "src": "_common.scss:1-12, _message-dialog.scss:1"
+ },
+ "spacing_scale_px": {
+  "values": [
+   3,
+   6,
+   9,
+   12,
+   18,
+   24,
+   36
+  ],
+  "note": "HIG/stylesheet use 6px base unit (box spacing 6, 12, 18, 24, 36) plus 3px half step",
+  "src": "stylesheet-wide"
+ },
+ "transitions": {
+  "button": {
+   "props": "background, box-shadow",
+   "ms": 200,
+   "easing": "cubic-bezier(0.25,0.46,0.45,0.94)"
+  },
+  "focus_ring": {
+   "props": "outline-color, outline-width, outline-offset",
+   "ms": 200,
+   "easing": "cubic-bezier(0.25,0.46,0.45,0.94)"
+  },
+  "backdrop": {
+   "ms": 200,
+   "easing": "ease-out",
+   "effect": "headerbar/sidebar bg to backdrop colour; content filter opacity(0.5)"
+  },
+  "scrollbar": {
+   "ms": 200,
+   "easing": "linear",
+   "props": "all"
+  },
+  "list_row": {
+   "ms": 200,
+   "easing": "cubic-bezier(0.25,0.46,0.45,0.94)"
+  },
+  "tab_bar_tab": {
+   "ms": 150,
+   "easing": "ease-in-out"
+  },
+  "expander_arrow": {
+   "ms": 200,
+   "easing": "cubic-bezier(0.25,0.46,0.45,0.94)"
+  },
+  "needs_attention": {
+   "ms": 150,
+   "easing": "ease-in"
+  },
+  "disable": "When gtk-enable-animations=false (portal/gsettings enable-animations), AdwStyleManager injects '* { transition: none; }' (adw-style-manager.c:475-478); temporarily applied ~ during style switch; Qt: skip all animations.",
+  "src": "_common.scss:1-8"
+ },
+ "focus_ring": {
+  "outline_style": "solid",
+  "color": "accent-color @ 0.50 (hc 0.80)",
+  "width": 2,
+  "default_offset": -2,
+  "offset_rules": {
+   "inner_default (buttons, entries, rows, checkbutton)": "width 2, offset = -2 (drawn inside border box)",
+   "outer (suggested/opaque/osd buttons, switch, toggle in group)": "offset +1 (switch, opaque, osd) or 0 (toggle, tabgrid), extends outward",
+   "cards/rows/list rows": "offset -1",
+   "scale slider": "offset 0 around slider",
+   "notebook tab": "offset -2"
+  },
+  "visible_only_when": ":focus:focus-visible (keyboard focus); entries use :focus-within (always shown)",
+  "idle": "outline 0 solid transparent, offset = (inner: -width? computed as offset+width+4px) so ring animates in from 4px",
+  "transition": "outline-* 200ms ease-out-quad",
+  "src": "_drawing.scss:8-30"
+ },
+ "widgets": {
+  "button": {
+   "src": "widgets/_buttons.scss:17-110",
+   "min_height": 24,
+   "min_width": 16,
+   "padding": [
+    5,
+    10,
+    5,
+    10
+   ],
+   "total_default_height": 34,
+   "radius": 9,
+   "font_weight": "bold (700)",
+   "border": "none",
+   "bg": {
+    "normal": "currentColor 0.10",
+    "hover": "currentColor 0.15",
+    "active": "currentColor 0.30",
+    "checked": "currentColor 0.30",
+    "checked_hover": "currentColor 0.35",
+    "checked_active": "currentColor 0.40"
+   },
+   "disabled": "whole widget opacity = disabled-opacity (0.5; hc 0.4); flat disabled unchecked: 0.30",
+   "variants": {
+    "text_button": {
+     "padding_lr": 17
+    },
+    "image_button": {
+     "min_width": 24,
+     "padding_lr": 5
+    },
+    "image_text_button": {
+     "padding_lr": 9,
+     "inner_spacing": 4,
+     "label_pad_lr": 2
+    },
+    "arrow_button": {
+     "padding_lr": 9,
+     "spacing": 4
+    },
+    "flat": {
+     "bg": "transparent",
+     "hover": "currentColor 0.07",
+     "active": "currentColor 0.16",
+     "checked": "currentColor 0.10",
+     "checked_hover": 0.13,
+     "checked_active": 0.19,
+     "disabled_unchecked_opacity": 0.3,
+     "hc_border_on": "hover/active/checked inset 1px border-color"
+    },
+    "raised (.raised / default)": "same as button",
+    "suggested": {
+     "src": "_buttons.scss:155-228",
+     "bg": "accent-bg-color",
+     "fg": "accent-fg-color",
+     "hover_overlay": "currentColor 0.10 over bg",
+     "active_overlay": "rgb(0,0,6) 0.20",
+     "checked_overlay": "rgb(0,0,6) 0.15",
+     "checked_hover": "rgb(0,0,6) 0.05",
+     "checked_active": "rgb(0,0,6) 0.30",
+     "focus_ring": "outer offset +1"
+    },
+    "opaque": {
+     "bg": "mix(window-bg 85%, window-fg 15%)",
+     "fg": "window-fg",
+     "overlays": "as suggested"
+    },
+    "destructive": {
+     "src": "_buttons.scss:183-211",
+     "fg": "destructive-color (standalone)",
+     "bg": "currentColor 0.15",
+     "hover": 0.2,
+     "active": 0.35,
+     "checked": 0.35,
+     "checked_hover": 0.4,
+     "checked_active": 0.45,
+     "note": "NOT a filled red button; filled only when combined with .suggested-action/.opaque"
+    },
+    "pill": {
+     "padding": [
+      10,
+      32,
+      10,
+      32
+     ],
+     "radius": 9999,
+     "src": "_buttons.scss:322"
+    },
+    "circular": {
+     "min": [
+      34,
+      34
+     ],
+     "padding": 0,
+     "radius": 9999,
+     "src": "_buttons.scss:312"
+    },
+    "osd": {
+     "min": [
+      32,
+      32
+     ],
+     "bg": "rgb(0,0,0) 0.65",
+     "fg": "white 0.9",
+     "hover_bg": "mix(black 0.85*65%, currentColor 0.15*65%)",
+     "active_bg": "mix(black 0.75*65%, currentColor 0.25*65%)"
+    },
+    "card": {
+     "bg": "card-bg-color",
+     "padding": 0,
+     "radius": 12,
+     "font_weight": "inherit",
+     "hover": "currentColor-ish view_hover 0.04",
+     "active": "view_active 0.08",
+     "focus_offset": -1
+    },
+    "link": {
+     "fg": "accent-color underline; visited mix(accent 80%, view-fg); hover HSL(h, s*1.1, l*1.1)",
+     "src": "_links.scss"
+    }
+   },
+   "hc": "adds inset 0 0 0 1px border-color (0.5 alpha) around normal buttons; flat buttons only on hover/active/checked",
+   "linked": "adjacent buttons: 0 radius on joined side, margin -1px overlap (_linked.scss)",
+   "splitbutton": {
+    "radius": 9,
+    "separator_margin_tb": 6,
+    "inner_button_padding_lr_arrow": 4,
+    "src": "_buttons.scss:~472-640"
+   }
+  },
+  "toggle_group": {
+   "src": "widgets/_toggle-group.scss",
+   "padding": 3,
+   "bg": "currentColor 0.10",
+   "radius": 9,
+   "toggle": {
+    "radius": 6,
+    "min_w": 34,
+    "min_h": 28,
+    "font_weight": "bold",
+    "checked_bg": "active-toggle-bg-color (light #fff; dark white 0.20)",
+    "checked_fg": "active-toggle-fg-color",
+    "checked_shadow": "0 1px 3px 1px rgba(0,0,6,0.07), 0 2px 6px 2px rgba(0,0,6,0.03)",
+    "text_padding_lr": 8,
+    "hover": 0.07,
+    "active": 0.16
+   }
+  },
+  "entry": {
+   "src": "widgets/_entries.scss:1-78",
+   "min_height": 34,
+   "padding_lr": 9,
+   "radius": 9,
+   "spacing": 6,
+   "bg": "currentColor 0.10",
+   "caret": "currentColor",
+   "border": "none",
+   "focus": "focus ring when :focus-within (2px, offset -2, accent 0.5)",
+   "disabled": "opacity disabled-opacity",
+   "icon_opacity": {
+    "normal": 0.7,
+    "hc": 0.85,
+    "hover": 1.0,
+    "active": 0.8,
+    "active_hc": 0.9
+   },
+   "placeholder": ".dimmed -> opacity dim-opacity (0.55; hc 0.90)",
+   "icon_margin": 6,
+   "progress_bar_under_entry": {
+    "height": 2,
+    "color": "accent-bg-color",
+    "margin_bottom": 3
+   },
+   "hc": "inset 1px border",
+   "selection": "focused: accent-bg 0.30; unfocused view-fg 0.10 (_common.scss:56-63)",
+   "flat_variant": {
+    "padding": 2,
+    "bg": "transparent",
+    "radius": 0
+   }
+  },
+  "textview": {
+   "src": "widgets/_views.scss",
+   "bg": "view-bg-color",
+   "fg": "view-fg-color",
+   "selection_focused": "accent-bg-color @ 0.30",
+   "selection_unfocused": "view-fg-color @ 0.10",
+   "selected_item_radius": 9,
+   "disabled_bg": "mix(window-bg 60%, view-bg)",
+   "disabled_fg": "view-fg @ disabled-opacity"
+  },
+  "spinbutton": {
+   "src": "widgets/_spin-button.scss",
+   "extends": "entry",
+   "padding": 0,
+   "text_min_width": 28,
+   "text_padding": 6,
+   "button_min": [
+    22,
+    16
+   ],
+   "button_border": "1px currentColor 0.10 (hc 0.50) on the inner edge",
+   "button_radius": "0 except outer corners 9",
+   "vertical": {
+    "text_min": [
+     30,
+     30
+    ],
+    "buttons": "stacked top/bottom with 1px border"
+   }
+  },
+  "dropdown": {
+   "src": "widgets/_dropdowns.scss",
+   "button": "like button, content spacing 6",
+   "arrow_size": 16,
+   "flat_raised_supported_since": "1.10",
+   "popover": "popover.menu padding-top 6",
+   "searchbar_padding": 6
+  },
+  "switch": {
+   "src": "widgets/_switch.scss; size from GTK C (not in CSS)",
+   "slider": 20,
+   "padding": 3,
+   "radius": 14,
+   "total_size": [
+    46,
+    26
+   ],
+   "size_note": "width = 2*slider + 2*padding, height = slider + 2*padding (GTK GtkSwitch layout, not in SCSS)",
+   "trough": "currentColor 0.15 / hover 0.20 / active 0.25 (hc 0.30/0.40/0.50)",
+   "checked_bg": "accent-bg-color",
+   "checked_fg": "accent-fg-color",
+   "checked_hover_overlay": "currentColor 0.10",
+   "checked_active_overlay": "rgb(0,0,6) 0.20",
+   "slider_bg": "mix(white 80%, view-bg); hover/active/checked: white",
+   "slider_shadow": "0 2px 4px rgba(0,0,6,0.20); disabled: transparent",
+   "disabled": "opacity disabled-opacity",
+   "focus": "outer, offset +1",
+   "toolbar_margin_tb": 4,
+   "osd_checked_bg": "white 0.60"
+  },
+  "check_radio": {
+   "src": "widgets/_checks.scss",
+   "size": 14,
+   "padding": 3,
+   "total": 20,
+   "check_radius": 6,
+   "radio_radius": "50%",
+   "icon_size": 14,
+   "unchecked": "inset 2px ring currentColor 0.15 (hover 0.20; hc ring: border-color 0.5, hover 0.60); active: fill 0.25 (hc 0.60), ring none",
+   "checked": "fill accent-bg-color, glyph accent-fg-color (check.svg/bullet.svg/dash.svg), hover overlay currentColor 0.10, active rgb(0,0,6) 0.20",
+   "disabled": "opacity disabled-opacity",
+   "checkbutton": {
+    "padding": 3,
+    "spacing": 4,
+    "radius": 9,
+    "text_button_padding": 4,
+    "focus": "focus ring around whole checkbutton"
+   },
+   "menu_variant": {
+    "size": 14,
+    "padding": 2,
+    "radio_padding": 1,
+    "radio_border": "1px currentColor 0.30 (hc 0.80)",
+    "no_fill": true
+   },
+   "selection_mode": {
+    "padding": 7,
+    "radius": 100
+   }
+  },
+  "scale": {
+   "src": "widgets/_scale.scss",
+   "trough_thickness": 10,
+   "trough_note": "scale min-height/width 10px + padding 12 => 34px control extent",
+   "padding": 12,
+   "slider": 20,
+   "slider_margin": -8,
+   "slider_radius": "100%",
+   "slider_bg": "mix(white 80%, view-bg); hover white",
+   "slider_shadow": "0 0 0 1px rgba(0,0,6,0.10) [hc 0.35], 0 2px 4px rgba(0,0,6,0.20)",
+   "trough_bg": "currentColor 0.15 (hover 0.20; hc 0.30/0.40 + inset 1px border)",
+   "highlight": "accent-bg-color, fg accent-fg; hover overlay currentColor 0.10",
+   "radius": 99,
+   "marks": {
+    "length": 6,
+    "distance": 6,
+    "width": 1,
+    "color": "currentColor @ dim-opacity"
+   },
+   "fine_tune": "trough grows by 3px each side",
+   "value_label": "dimmed numeric, margin 9",
+   "disabled": "opacity disabled-opacity, slider shadow transparent",
+   "focus": "ring around slider, offset 0, width 2",
+   "marks_slider": "rotated 45deg with one corner square"
+  },
+  "progressbar": {
+   "src": "widgets/_progress-bar.scss",
+   "thickness": 8,
+   "min_length_h": 150,
+   "min_length_v": 80,
+   "radius": 99,
+   "trough": "currentColor 0.15 (hc 0.30 + inset 1px border)",
+   "fill": "accent-bg-color",
+   "text": "smaller (~83%), dimmed, tabular-nums",
+   "osd_thickness": 2,
+   "disabled": "opacity disabled-opacity",
+   "empty": "fill hidden when fraction 0"
+  },
+  "levelbar": {
+   "src": "widgets/_level-bar.scss",
+   "thickness": 8,
+   "radius": 99,
+   "low": "warning-bg-color",
+   "high_or_normal": "accent-bg-color",
+   "full": "success-bg-color",
+   "empty": "currentColor 0.15",
+   "discrete_block": {
+    "min_length": 26,
+    "gap": 2
+   }
+  },
+  "scrollbar": {
+   "src": "widgets/_scrolling.scss:1-127",
+   "slider_min_length": 40,
+   "slider_width_expanded": 8,
+   "slider_width_overlay_idle": 3,
+   "trough_margin": {
+    "base": 9,
+    "expanded_cross_axis": 8,
+    "overlay_idle_cross_axis": 4,
+    "along_axis": 9
+   },
+   "cross_axis_total_px": {
+    "expanded": 24,
+    "overlay_idle": 11,
+    "formula": "2*trough_cross_margin + slider thickness (8 expanded, 3 idle)"
+   },
+   "geometry_note": "Slider min thickness 8px + 8px transparent border and -8px margin (net 8px in trough). Overlay idle: trough margin 4px, slider 3px; overlay hovering (and non-overlay): slider 8px, trough margin 8px, trough bg currentColor 0.10 (hc 0.25) only for overlay. Overlay indicator state (hovering) is set by GTK at runtime on pointer proximity; idle bars fade out after GTK overlay timeout (GTK C, not CSS).",
+   "slider_bg": {
+    "normal": "currentColor 0.20",
+    "hover": 0.4,
+    "active": 0.6,
+    "hc": [
+     0.4,
+     0.6,
+     1.0
+    ]
+   },
+   "slider_radius": 99,
+   "overlay_outline": {
+    "expanded": "1px outline scrollbar-outline-color @ 0.60 (hc 1.0), offset -8",
+    "idle": "@ 0.35 (hc 0.60)"
+   },
+   "disabled": "slider opacity 0",
+   "fine_tune_slider": "accent-color @ 0.60 (hc 1.0)",
+   "transition": "all 200ms linear",
+   "menu_override": "popover.menu scrollbar slider min-height 26",
+   "overshoot": "currentColor 0.12 small gradient 3% + 0.05 big gradient 50%",
+   "undershoot": "shade-color @ 0.75 gradient 4px (hc: 1px border-color)"
+  },
+  "tabs_notebook": {
+   "src": "widgets/_notebook.scss",
+   "tab": {
+    "min": [
+     30,
+     30
+    ],
+    "padding": [
+     3,
+     12,
+     3,
+     12
+    ],
+    "extra_inner_padding_edge": 4,
+    "font_weight": "normal (400)",
+    "margin_between": "4px each side",
+    "hover_bg": "currentColor 0.07",
+    "indicator": "inset 4px bar (box-shadow): checked accent-bg-color, hover border-color 0.15",
+    "focus": "ring offset -2 on checked tab"
+   },
+   "header": {
+    "border": "1px border-color 0.15 on the content side",
+    "padding": 1
+   },
+   "content_bg": "view-bg-color",
+   "close_button": {
+    "min": 20,
+    "margin_tb": 4,
+    "fg": "currentColor 0.30, hover currentColor"
+   }
+  },
+  "tabbar_adw": {
+   "src": "widgets/_tab-view.scss:1-182",
+   "bar_min_height": 34,
+   "padding_tb": 6,
+   "tab_min_height": 26,
+   "tab_padding": 4,
+   "tab_radius": 9,
+   "bg": "headerbar-bg-color",
+   "bottom_line": "inset 0 -1px headerbar-shade-color (hc: border 0.5)",
+   "selected": "currentColor 0.10, hover 0.13, active 0.19",
+   "hover": "currentColor 0.07",
+   "active": "currentColor 0.16",
+   "close_button": {
+    "min": 24,
+    "radius": 99
+   },
+   "transition_ms": 150,
+   "indicator_dot": {
+    "min_h": 2,
+    "color": "accent-color 0.5 (hc 1.0)"
+   },
+   "separator_margin_tb": 3
+  },
+  "headerbar": {
+   "src": "widgets/_header-bar.scss:1-170",
+   "min_height": 47,
+   "content_min_height_with_titlebar_class": 46,
+   "border_bottom": "1px (inside 47) inset 0 -1px headerbar-shade-color; hc: border color headerbar-border @0.5",
+   "padding": [
+    6,
+    7,
+    7,
+    7
+   ],
+   "box_spacing": 6,
+   "start_end_margin": 6,
+   "title": {
+    "font_weight": "bold (700)",
+    "font_size": "inherit (11pt)",
+    "padding_lr": 12
+   },
+   "subtitle": {
+    "font_size": "smaller (~83%)",
+    "dimmed": true,
+    "padding_lr": 12
+   },
+   "bg": "headerbar-bg-color",
+   "fg": "headerbar-fg-color",
+   "backdrop": "bg -> headerbar-backdrop-color, content opacity 0.5, 200ms",
+   "side_borders": "inset 1px 0 headerbar-border-color @ border-opacity",
+   "button_style": "flat buttons for image/arrow/image-text buttons; linked buttons raised",
+   "default_decoration_min_height": 37,
+   "flat_min_height": 46,
+   "windowcontrols": {
+    "spacing": 3,
+    "button_min_w": 24,
+    "button_padding": 5,
+    "icon_bg": "currentColor 0.10, hover 0.15, active 0.30",
+    "icon_padding": 4,
+    "radius": "100%",
+    "circle_px": "icon 16 + padding 4*2 = 24; button min_width 24 + padding 5 => 34 hit area"
+   },
+   "titlebar_shadow": "0 1px headerbar-shade@0.5, 0 2px 4px headerbar-shade@0.5",
+   "raised_toolbarview": "same shadows; .border => 0 1px headerbar-darker-shade-color"
+  },
+  "toolbar": {
+   "src": "widgets/_toolbars.scss:99-110",
+   "padding": 6,
+   "spacing": 6,
+   "osd": {
+    "padding": 12,
+    "radius": 15
+   },
+   "searchbar": {
+    "padding": [
+     6,
+     6,
+     7,
+     6
+    ],
+    "bg": "headerbar-bg",
+    "bottom_line": "inset 0 -1px headerbar-shade",
+    "close_button_min": 18
+   },
+   "actionbar": {
+    "padding": [
+     7,
+     6,
+     6,
+     6
+    ],
+    "top_line": "inset 0 1px headerbar-shade"
+   },
+   "banner": {
+    "padding": 6,
+    "bg": "mix(banner-color #7d7d83 30%, window-bg)"
+   }
+  },
+  "popover_menu": {
+   "src": "widgets/_popovers.scss:1-82; _menus.scss:1-246",
+   "popover": {
+    "radius": 15,
+    "padding": 8,
+    "bg": "popover-bg-color",
+    "fg": "popover-fg-color",
+    "shadow": "0 0 0 1px rgba(0,0,0,0.05), 0 1px 5px 1px rgba(0,0,0,0.09), 0 2px 14px 3px rgba(0,0,0,0.05)",
+    "hc_ring": "0 0 0 1px border-color 0.5 replaces the 0.05 black ring",
+    "menu_contents_padding": 0,
+    "menu_section_padding": 6,
+    "min_width": 120
+   },
+   "menu_item": {
+    "min_height": 32,
+    "min_width": 40,
+    "padding_lr": 12,
+    "radius": 9,
+    "hover_selected_bg": "currentColor 0.10",
+    "active_bg": "currentColor 0.19",
+    "hc": "inset 1px border on hover/selected/active",
+    "accelerator": "currentColor @ dim-opacity, margin 12 from label",
+    "check_radio": {
+     "size": 14,
+     "padding": 2,
+     "no_background": true
+    },
+    "arrow": {
+     "size": 16,
+     "opacity": 0.3,
+     "hc": 0.8
+    },
+    "label_title": {
+     "font_weight": "bold",
+     "padding": "4px 32px"
+    }
+   },
+   "separator": {
+    "margin_tb": 6,
+    "thickness": 1,
+    "color": "currentColor @ border-opacity"
+   },
+   "inline_buttons": {
+    "min": 32,
+    "padding_lr": 12
+   },
+   "circular_buttons": {
+    "padding": [
+     12,
+     12,
+     6,
+     12
+    ],
+    "button_padding": 11,
+    "ring": "inset 1px border-color"
+   },
+   "list_rows_in_menu": {
+    "min_height": 32,
+    "row_padding_lr": 12,
+    "standalone_row_padding": [
+     9,
+     12
+    ],
+    "standalone_margin_lr": 6,
+    "list_padding_tb": 6
+   },
+   "menubar": {
+    "item_min_h": 16,
+    "item_padding": [
+     4,
+     8
+    ],
+    "radius": 9,
+    "bottom_line": "inset 0 -1px border-color",
+    "selected": "currentColor 0.10"
+   },
+   "arrow_pointer": "popover > arrow: popover-bg-color bg, 1px transparent border (hc: border-color)"
+  },
+  "list_rows": {
+   "src": "widgets/_lists.scss",
+   "list": {
+    "bg": "view-bg-color",
+    "fg": "view-fg-color",
+    "row_padding": 2,
+    "separator": "1px border-color (currentColor @0.15) bottom/left"
+   },
+   "row_hover": "currentColor 0.04",
+   "row_active": "currentColor 0.08",
+   "row_selected": "accent-bg-color 0.25",
+   "selected_hover": 0.32,
+   "selected_active": 0.39,
+   "rich_list_row": {
+    "padding": [
+     8,
+     12
+    ],
+    "min_height": 32,
+    "spacing": 12
+   },
+   "boxed_list": {
+    "src": "_lists.scss:520-554",
+    "bg": "card-bg-color",
+    "fg": "card-fg-color",
+    "radius": 12,
+    "shadow": "0 0 0 1px rgba(0,0,6,0.03), 0 1px 3px 1px rgba(0,0,6,0.07), 0 2px 6px 2px rgba(0,0,6,0.03) (hc: first ring -> border-color 0.5)",
+    "row_separator": "border-bottom 1px card-shade-color (hc: border-color)",
+    "row_hover": "currentColor 0.03",
+    "row_active": "currentColor 0.08",
+    "focus_offset": -1,
+    "last_row_no_separator": true
+   },
+   "boxed_list_separate": {
+    "row_margin_bottom": 12,
+    "each_row": "card"
+   },
+   "action_row": {
+    "header_min_height": 50,
+    "header_margin_lr": 12,
+    "title_margin_tb": 6,
+    "title_spacing": 3,
+    "icon_prefix_gap": 6,
+    "subtitle": "font-size smaller (~83%), dimmed",
+    "property_row": "title smaller dimmed, subtitle normal"
+   },
+   "entry_row": {
+    "header_margin_lr": 6,
+    "editable_pad_lr": 6,
+    "edit_icon": 24,
+    "focus_offset": -1
+   },
+   "spin_row_button": {
+    "size": 30,
+    "margin": [
+     10,
+     2
+    ]
+   },
+   "button_row": {
+    "min_height": 40,
+    "margin_lr": 12,
+    "title": ".heading"
+   },
+   "expander_row": {
+    "nested_bg": "card-shade-color @ 0.5",
+    "arrow_transition_ms": 200,
+    "arrow_checked_color": "accent-color"
+   },
+   "section_header": {
+    "padding": [
+     18,
+     2,
+     6,
+     2
+    ],
+    "style": ".heading (bold)"
+   },
+   "navigation_sidebar": {
+    "row_min_height": 36,
+    "row_margin": [
+     0,
+     6,
+     2,
+     6
+    ],
+    "row_padding_lr": 8,
+    "radius": 9,
+    "list_padding_top": 6,
+    "list_padding_bottom": 4,
+    "hover": "currentColor 0.07",
+    "active": 0.16,
+    "selected": 0.1,
+    "selected_hover": 0.13,
+    "selected_active": 0.19,
+    "separator_margin": 6,
+    "adw_sidebar_row_inner_padding": [
+     3,
+     14
+    ],
+    "adw_sidebar_icon_spacing": 12
+   }
+  },
+  "tooltip": {
+   "src": "widgets/_tooltip.scss",
+   "bg": "rgb(0,0,6) 0.80",
+   "fg": "white",
+   "border": "1px rgba(255,255,255,0.10)",
+   "padding": [
+    6,
+    10,
+    6,
+    10
+   ],
+   "radius": 9,
+   "spacing": 6
+  },
+  "frame_separator_card": {
+   "src": "widgets/_misc.scss",
+   "separator": {
+    "thickness": 1,
+    "color": "currentColor @ border-opacity",
+    "spacer": 12
+   },
+   "frame": {
+    "border": "1px border-color",
+    "radius": 12
+   },
+   "card": {
+    "bg": "card-bg-color",
+    "radius": 12,
+    "shadow": "0 0 0 1px rgba(0,0,6,0.03), 0 1px 3px 1px rgba(0,0,6,0.07), 0 2px 6px 2px rgba(0,0,6,0.03)",
+    "hc_ring": "border-color 0.5",
+    "hover": "currentColor 0.03",
+    "active": "currentColor 0.08",
+    "osd": "currentColor 0.10"
+   },
+   "paned_separator": {
+    "thin": 1,
+    "wide": 5,
+    "line": "inset 1px border-color"
+   },
+   "toast": {
+    "bg": "#505053",
+    "radius": 150,
+    "padding": 6,
+    "margin": [
+     12,
+     12,
+     24,
+     12
+    ],
+    "shadow": "0 1px 3px 1px rgba(0,0,6,0.07), 0 2px 6px 2px rgba(0,0,6,0.03)"
+   }
+  },
+  "window_dialog": {
+   "src": "widgets/_window.scss; _dialogs.scss; _message-dialog.scss",
+   "window_radius": 15,
+   "csd_shadow": "0 0 14px 5px rgba(0,0,0,0.15), 0 0 5px 2px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.05)",
+   "hc_ring": "0 0 0 1px rgba(0,0,0,0.80)",
+   "outline": "1px rgba(255,255,255,0.07) inside (hc 0.30)",
+   "dialog_sheet": {
+    "radius": 15,
+    "shadow": "0 0 14px 2px rgba(0,0,6,0.03), 0 0 5px 2px rgba(0,0,6,0.10), 0 0 0 1px rgba(0,0,0,0.05)",
+    "bg": "window-bg-color",
+    "dimming": "shade-color alpha*2"
+   },
+   "alert_dialog": {
+    "radius": 18,
+    "bg": "dialog-bg-color",
+    "action_area_padding": 24,
+    "button_padding": [
+     10,
+     20
+    ],
+    "button_radius": 12,
+    "button_min_height": 24,
+    "spacing": 12
+   },
+   "maximized_tiled": "radius 0, no shadow"
+  },
+  "statuspage": {
+   "src": "widgets/_misc.scss:126-197",
+   "icon": 128,
+   "margin": [
+    36,
+    12
+   ],
+   "spacing": 36,
+   "compact": {
+    "icon": 96,
+    "margin": [
+     24,
+     12
+    ],
+    "spacing": 24
+   },
+   "title": ".title-1 (compact .title-2)"
+  },
+  "selection_item": {
+   "src": "_views.scss:1-18, :52-85",
+   "view_selected_bg": "accent-bg-color @ 0.25 (hover 0.32, active 0.39)",
+   "radius": 9,
+   "flowbox_child_padding": 3,
+   "rubberband": {
+    "border": "1px accent-color",
+    "fill": "accent-color @ 0.20"
+   },
+   "text_selection": "accent-bg-color @ 0.30 focused; view-fg @ 0.10 unfocused"
+  },
+  "separators": {
+   "thickness": 1,
+   "color": "currentColor @ border-opacity",
+   "spacer": 12
+  }
+ },
+ "typography": {
+  "default_font": {
+   "family": "Adwaita Sans",
+   "size_pt": 11,
+   "src": "gsettings-desktop-schemas 51.0 org.gnome.desktop.interface font-name = 'Adwaita Sans 11' (verified)",
+   "note": "libadwaita stylesheet itself sets no font-family; text uses gtk-font-name. 11pt = 14.67px at 96dpi"
+  },
+  "document_font": {
+   "family": "Adwaita Sans",
+   "size_pt": 12,
+   "src": "gsettings-desktop-schemas 51.0 document-font-name='Adwaita Sans 12' (main branch: 'Adwaita Sans 11')",
+   "libadwaita_fallback": "Sans 10 (adw-style-manager.c:50-59)"
+  },
+  "monospace_font": {
+   "family": "Adwaita Mono",
+   "size_pt": 11,
+   "src": "gsettings-desktop-schemas 51.0 monospace-font-name; libadwaita fallback Monospace 10"
+  },
+  "classes": {
+   "title-1": {
+    "weight": 800,
+    "size_pct": 181
+   },
+   "title-2": {
+    "weight": 800,
+    "size_pct": 136
+   },
+   "title-3": {
+    "weight": 700,
+    "size_pct": 136
+   },
+   "title-4": {
+    "weight": 700,
+    "size_pct": 118
+   },
+   "heading": {
+    "weight": 700,
+    "size_pct": 100
+   },
+   "body": {
+    "weight": 400,
+    "size_pct": 100,
+    "line_height_pct": 140
+   },
+   "caption-heading": {
+    "weight": 700,
+    "size_pct": 82
+   },
+   "caption": {
+    "weight": 400,
+    "size_pct": 82,
+    "line_height_pct": 140
+   },
+   "document": {
+    "line_height_pct": 140,
+    "font": "document font"
+   },
+   "monospace": {
+    "font": "monospace font"
+   },
+   "numeric": {
+    "font_variant_numeric": "tabular-nums"
+   },
+   "smaller": {
+    "size_pct": "83.33 (Pango 'smaller' = x/1.2)"
+   },
+   "dimmed": {
+    "opacity": "dim-opacity 0.55 (hc 0.90)"
+   }
+  },
+  "src": "widgets/_labels.scss:31-90",
+  "button_label_weight": 700,
+  "headerbar_title_weight": 700,
+  "headerbar_subtitle": "smaller + dimmed",
+  "menu_item_label": "normal (400); menu section title bold",
+  "tab_label_weight": 400,
+  "adw_tabbar_tab": "label weight normal",
+  "toggle_group_weight": 700,
+  "tabbutton_label": {
+   "weight": 800,
+   "size_px": 10.5
+  }
+ },
+ "high_contrast": {
+  "trigger": "portal org.freedesktop.appearance contrast == 1 (GTK prefers-contrast: more) or gsettings org.gnome.desktop.a11y.interface high-contrast",
+  "palette_change": "none",
+  "changes": {
+   "border_opacity": [
+    0.15,
+    0.5
+   ],
+   "dim_opacity": [
+    0.55,
+    0.9
+   ],
+   "disabled_opacity": [
+    0.5,
+    0.4
+   ],
+   "dimmer_opacity": [
+    0.3,
+    0.8
+   ],
+   "focus_ring_alpha": [
+    0.5,
+    0.8
+   ],
+   "trough": "0.15/0.20/0.25 -> 0.30/0.40/0.50",
+   "scrollbar_slider": "0.20/0.40/0.60 -> 0.40/0.60/1.00; overlay hovering trough 0.10->0.25",
+   "scrollbar_outline": "overlay outline 0.60->1.0 ; idle 0.35->0.60",
+   "fine_tune_scrollbar": "accent 0.60 -> 1.0",
+   "added_inset_1px_borders": [
+    "buttons (non-flat)",
+    "entries/spinbuttons",
+    "toggle-group",
+    "scale trough",
+    "levelbar empty",
+    "progressbar trough",
+    "window controls icons",
+    "flat buttons on hover/active/checked",
+    "menu items hover/active",
+    "list rows in sidebars/menus hover/active/selected",
+    "tabbar tab hover/active/selected",
+    "flowbox/gridview children selected/hover",
+    "cards (shadow ring -> border colour)",
+    "popover ring",
+    "toast ring",
+    "toggle-group checked"
+   ],
+   "check_radio": "unchecked ring uses border-color (0.5); hover ring 0.60; active fill 0.60",
+   "window_ring": "0 0 0 1px black 0.80 (csd) ; window outline white 0.30",
+   "headerbar_shade": "bottom line becomes headerbar-border-color @0.5",
+   "icon_opacity_entry": [
+    0.7,
+    0.85
+   ],
+   "tab_indicator": "accent 0.5->1.0",
+   "notebook": "unchanged except border alpha",
+   "src": "grep prefers-contrast stylesheet/ (154 occurrences)"
+  }
+ },
+ "osd_overrides": {
+  "bg": "rgb(0,0,0) 0.70",
+  "fg": "white 0.90",
+  "accent_bg": "white 0.75",
+  "accent_fg": "black 0.75",
+  "scrollbar_outline": "black 0.5",
+  "src": "_common.scss:35-52"
+ },
+ "animations": {
+  "setting": "gtk-enable-animations / org.gnome.desktop.interface enable-animations (portal: reduced motion not separate in libadwaita 1.10)",
+  "reduced": "all CSS transitions none",
+  "adw_animation_default_ms": "200 (typical AdwTimedAnimation in widgets)"
+ }
+}
