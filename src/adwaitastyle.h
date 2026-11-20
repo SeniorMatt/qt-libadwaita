@@ -2,6 +2,8 @@
 #pragma once
 #include "adwaitatokens.h"
 #include <QCommonStyle>
+#include <QImage>
+#include <QPainter>
 
 // App-facing API (dynamic properties, mirroring GTK style classes):
 //   "adwaita-class" = suggested-action | destructive-action | flat | pill | headerbar | boxed-list | boxed-row
@@ -61,6 +63,24 @@ public:
     bool drawButtonLabel(const QStyleOption *opt, QPainter *p, const QWidget *w) const;
     bool drawEntryPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const;
     bool drawComboBox(const QStyleOptionComplex *opt, QPainter *p, const QWidget *w) const;
+    // libadwaita fades a disabled widget as one group (opacity on the whole widget): paint into a layer, blend once.
+    template<class F> void drawFaded(QPainter *p, const QRect &r, F &&paint) const
+    {
+        const qreal dpr = p->device()->devicePixelRatioF();
+        const QRect lr = r.adjusted(-6, -6, 6, 6);
+        QImage img((lr.size() * dpr).expandedTo(QSize(1, 1)), QImage::Format_ARGB32_Premultiplied);
+        img.setDevicePixelRatio(dpr);
+        img.fill(Qt::transparent);
+        QPainter ip(&img);
+        ip.translate(-lr.topLeft());
+        paint(&ip);
+        ip.end();
+        p->save();
+        p->setOpacity(p->opacity() * m_tokens.disabled_opacity);
+        p->drawImage(lr.topLeft(), img);
+        p->restore();
+    }
+    void polishSwitch(QWidget *w);
     bool drawCheckPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const;
 
     ADW_FAMILIES(ADW_FAMILY_HOOKS)

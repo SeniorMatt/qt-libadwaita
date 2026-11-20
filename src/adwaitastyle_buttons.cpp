@@ -31,7 +31,11 @@ bool AdwaitaStyle::drawButtonLabel(const QStyleOption *opt, QPainter *p, const Q
     QStyleOptionButton b = *qstyleoption_cast<const QStyleOptionButton *>(opt);
     if (k == Suggested) b.palette.setColor(QPalette::ButtonText, withDisabled(m_tokens.accent_fg, opt));
     else if (k == Destructive) b.palette.setColor(QPalette::ButtonText, withDisabled(m_tokens.destructive_fg, opt));
+    p->save();
+    QFont bf = p->font(); bf.setBold(true); p->setFont(bf);  // libadwaita button label weight 700
+    b.fontMetrics = QFontMetrics(bf);
     QCommonStyle::drawControl(CE_PushButtonLabel, &b, p, w);
+    p->restore();
     return true;
 }
 

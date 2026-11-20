@@ -4,6 +4,12 @@
 
 #include <QAbstractItemView>
 #include <QApplication>
+#include <QGuiApplication>
+#include <QScreen>
+#ifdef ADWAITA_HAVE_XCB
+#include <xcb/xcb.h>
+#include <QtGui/qguiapplication_platform.h>
+#endif
 #include <QComboBox>
 #include <QEvent>
 #include <QImage>
@@ -23,6 +29,46 @@ constexpr int kItemPadX = 12;
 constexpr int kCheckCol = 24;   // check / radio indicator column
 
 QColor alpha(QColor c, qreal a) { c.setAlphaF(a); return c; }
+
+// Is a compositing manager running? Wayland and offscreen: always. X11: owner of _NET_WM_CM_S<screen>.
+// ADWAITA_NO_TRANSLUCENT=1 forces "no" (manual override). Without xcb at build time we assume yes.
+bool compositorActive()
+{
+    if (!qEnvironmentVariableIsEmpty("ADWAITA_NO_TRANSLUCENT")) return false;
+#ifdef ADWAITA_HAVE_XCB
+    if (QGuiApplication::platformName() == QLatin1String("xcb")) {
+        if (auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
+            if (xcb_connection_t *c = x11->connection()) {
+                int screen = 0;
+                const QByteArray d = qgetenv("DISPLAY");
+                const int dot = d.lastIndexOf('.');
+                if (dot > d.lastIndexOf(':')) screen = d.mid(dot + 1).toInt();
+                const QByteArray name = "_NET_WM_CM_S" + QByteArray::number(screen);
+                auto ac = xcb_intern_atom_reply(c, xcb_intern_atom(c, true, name.size(), name.constData()), nullptr);
+                if (!ac) return true;
+                const xcb_atom_t atom = ac->atom;
+                free(ac);
+                if (atom == XCB_ATOM_NONE) return false;
+                auto oc = xcb_get_selection_owner_reply(c, xcb_get_selection_owner(c, atom), nullptr);
+                const bool on = oc && oc->owner != XCB_NONE;
+                free(oc);
+                return on;
+            }
+        }
+    }
+#endif
+    return true;
+}
+
+bool isComboPopup(const QWidget *w);
+
+// Popover shadow margin of a popup widget: kShadow when it is translucent, else the panel is a plain 1px frame.
+int popupMargin(const QWidget *w)
+{
+    // QComboBox::showPopup sizes the container from metrics asked with the combo itself, so ask the compositor there.
+    const bool tr = (w && !qobject_cast<const QComboBox *>(w) && !isComboPopup(w)) ? w->testAttribute(Qt::WA_TranslucentBackground) : compositorActive();
+    return tr ? kShadow : 0;
+}
 
 bool isComboPopup(const QWidget *w)
 {
@@ -50,7 +96,7 @@ void shadowLayer(QPainter *p, const QRectF &r, qreal rad, qreal dy, qreal spread
 class PopupPainter : public QObject
 {
 public:
-    PopupPainter(const AdwaitaTokens *t, QWidget *w) : QObject(w), m_t(t), m_w(w) {}
+    PopupPainter(const AdwaitaTokens *t, QWidget *w) : QObject(w), m_t(t), m_w(w) { setObjectName("adwPopupPainter"); }
     bool eventFilter(QObject *o, QEvent *e) override
     {
         if (o == m_w && e->type() == QEvent::Show) {
@@ -62,23 +108,98 @@ public:
         if (o == m_w && e->type() == QEvent::Paint) {
             QPainter p(m_w);
             p.setRenderHint(QPainter::Antialiasing);
-            const QRectF r = QRectF(m_w->rect()).adjusted(kShadow, kShadow, -kShadow, -kShadow);
-            p.setCompositionMode(QPainter::CompositionMode_Source);
-            p.fillRect(m_w->rect(), Qt::transparent);
-            p.setCompositionMode(QPainter::CompositionMode_SourceOver);
-            if (m_w->testAttribute(Qt::WA_TranslucentBackground)) {
+            const bool tr = m_w->testAttribute(Qt::WA_TranslucentBackground);
+            const int m = tr ? kShadow : 0;
+            const QRectF r = QRectF(m_w->rect()).adjusted(m, m, -m, -m);
+            if (tr) {
+                p.setCompositionMode(QPainter::CompositionMode_Source);
+                p.fillRect(m_w->rect(), Qt::transparent);
+                p.setCompositionMode(QPainter::CompositionMode_SourceOver);
                 shadowLayer(&p, r, m_t->radius_popover, 2, 3, 14, 0.05);
                 shadowLayer(&p, r, m_t->radius_popover, 1, 1, 5, 0.09);
                 p.setPen(QPen(QColor(0, 0, 0, 13), 1)); p.setBrush(Qt::NoBrush);
                 p.drawRoundedRect(r.adjusted(-.5, -.5, .5, .5), m_t->radius_popover + .5, m_t->radius_popover + .5);
+                p.setPen(Qt::NoPen); p.setBrush(m_t->popover_bg);
+                p.drawRoundedRect(r, m_t->radius_popover, m_t->radius_popover);
+            } else {
+                p.fillRect(r, m_t->popover_bg);
+                p.setPen(QPen(m_t->border, 1)); p.setBrush(Qt::NoBrush);
+                p.drawRect(r.adjusted(.5, .5, -.5, -.5));
             }
-            p.setPen(Qt::NoPen); p.setBrush(m_t->popover_bg);
-            p.drawRoundedRect(r, m_t->radius_popover, m_t->radius_popover);
         }
         return false;
     }
 private:
     const AdwaitaTokens *m_t;
+    QWidget *m_w;
+};
+
+// Moves a translucent popup so the visible panel (not the shadow margin) lands where Qt placed the widget.
+class PopupPlacer : public QObject
+{
+public:
+    explicit PopupPlacer(QWidget *w) : QObject(w), m_w(w) { setObjectName("adwPopupPlacer"); }
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        if (o != m_w) return false;
+        if (e->type() == QEvent::Hide) { m_done = false; }
+        if (e->type() == QEvent::Show && !m_done && m_w->testAttribute(Qt::WA_TranslucentBackground)) {
+            m_done = true;
+            place();
+        }
+        return false;
+    }
+private:
+    void place()
+    {
+        QRect g = m_w->geometry();
+        if (auto *menu = qobject_cast<QMenu *>(m_w)) {
+            QMenu *parent = nullptr;
+            if (menu->menuAction())
+                for (QObject *ao : menu->menuAction()->associatedObjects())
+                    if (auto *pm = qobject_cast<QMenu *>(ao); pm && pm->isVisible() && pm != menu) parent = pm;
+            if (parent) {  // submenu: panels sit side by side, y already follows Qt's item alignment
+                const QRect pg = parent->geometry();
+                const bool left = g.center().x() < pg.center().x();
+                g.moveLeft(left ? pg.left() + kShadow - g.width() + kShadow : pg.right() + 1 - kShadow - kShadow);
+            } else {
+                g.translate(-kShadow, -kShadow);
+            }
+        } else if (auto *cb = qobject_cast<QComboBox *>(m_w->parentWidget())) {  // combo popup: panel = combo width, below/above it
+            const QPoint top = cb->mapToGlobal(QPoint(0, 0));
+            const bool above = g.center().y() < top.y();
+            g = QRect(g.x() - kShadow, g.y() + (above ? kShadow : -kShadow), g.width() + 2 * kShadow, g.height());
+        } else {
+            return;
+        }
+        // keep the visible panel on screen
+        if (QScreen *sc = QGuiApplication::screenAt(g.center())) {
+            const QRect av = sc->availableGeometry().adjusted(-kShadow, -kShadow, kShadow, kShadow);
+            if (g.right() > av.right()) g.moveRight(av.right());
+            if (g.bottom() > av.bottom()) g.moveBottom(av.bottom());
+            if (g.left() < av.left()) g.moveLeft(av.left());
+            if (g.top() < av.top()) g.moveTop(av.top());
+        }
+        m_w->setGeometry(g);
+    }
+    QWidget *m_w;
+    bool m_done = false;
+};
+
+// Tooltip: libadwaita padding is 6/10 (+1 border); QTipLabel only has a uniform margin, so add the horizontal rest.
+class TipFixer : public QObject
+{
+public:
+    explicit TipFixer(QWidget *w) : QObject(w), m_w(w) { setObjectName("adwTipFixer"); }
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        if (o == m_w && (e->type() == QEvent::Show || e->type() == QEvent::Move || e->type() == QEvent::Resize)) {
+            if (m_w->contentsMargins().left() != 4) m_w->setContentsMargins(4, 0, 4, 0);
+            if (m_w->width() < m_w->sizeHint().width()) m_w->resize(m_w->sizeHint());
+        }
+        return false;
+    }
+private:
     QWidget *m_w;
 };
 
@@ -104,6 +225,7 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
     case PE_PanelMenu: {
         const bool translucent = w && w->testAttribute(Qt::WA_TranslucentBackground);
         const qreal m = translucent ? kShadow : 0;
+        const qreal rad = translucent ? t.radius_popover : 0;  // square corners without a compositor
         const QRectF r = QRectF(opt->rect).adjusted(m, m, -m, -m);
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
@@ -111,25 +233,27 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
             p->setCompositionMode(QPainter::CompositionMode_Source);
             p->fillRect(opt->rect, Qt::transparent);
             p->setCompositionMode(QPainter::CompositionMode_SourceOver);
-            shadowLayer(p, r, t.radius_popover, 2, 3, 14, 0.05);
-            shadowLayer(p, r, t.radius_popover, 1, 1, 5, 0.09);
+            shadowLayer(p, r, rad, 2, 3, 14, 0.05);
+            shadowLayer(p, r, rad, 1, 1, 5, 0.09);
             p->setPen(QPen(t.variant.startsWith("hc-") ? t.border : QColor(0, 0, 0, 13), 1));
             p->setBrush(Qt::NoBrush);
-            p->drawRoundedRect(r.adjusted(-.5, -.5, .5, .5), t.radius_popover + .5, t.radius_popover + .5);
+            p->drawRoundedRect(r.adjusted(-.5, -.5, .5, .5), rad + .5, rad + .5);
         }
         p->setPen(translucent ? Qt::NoPen : QPen(t.border, 1));
         p->setBrush(t.popover_bg);
         p->drawRoundedRect(r.adjusted(translucent ? 0 : .5, translucent ? 0 : .5, translucent ? 0 : -.5, translucent ? 0 : -.5),
-                           t.radius_popover, t.radius_popover);
+                           rad, rad);
         p->restore();
         return true;
     }
     case PE_PanelTipLabel: {
+        const bool tr = !isTipLabel(w) || w->testAttribute(Qt::WA_TranslucentBackground);
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
         p->setPen(QPen(QColor(255, 255, 255, 26), 1));
-        p->setBrush(t.tooltip_bg);
-        p->drawRoundedRect(QRectF(opt->rect).adjusted(.5, .5, -.5, -.5), t.radius, t.radius);
+        p->setBrush(tr ? t.tooltip_bg : QColor::fromRgb(0x1c, 0x1c, 0x1e));  // opaque flat of rgba(0,0,6,.8) when not composited
+        const qreal trad = tr ? t.radius : 0;
+        p->drawRoundedRect(QRectF(opt->rect).adjusted(.5, .5, -.5, -.5), trad, trad);
         p->restore();
         return true;
     }
@@ -263,9 +387,9 @@ bool AdwaitaStyle::menus_subControlRect(ComplexControl, const QStyleOptionComple
 
 bool AdwaitaStyle::menus_pixelMetric(PixelMetric pm, const QStyleOption *, const QWidget *w, int &out) const
 {
-    if (pm == PM_DefaultFrameWidth && isComboPopup(w)) { out = kShadow + kMenuPad; return true; }
+    if (pm == PM_DefaultFrameWidth && isComboPopup(w)) { out = popupMargin(w) + (popupMargin(w) ? 0 : 1) + kMenuPad; return true; }
     switch (pm) {
-    case PM_MenuPanelWidth: out = kShadow; return true;
+    case PM_MenuPanelWidth: out = popupMargin(w) ? kShadow : 1; return true;
     case PM_MenuHMargin:
     case PM_MenuVMargin: out = kMenuPad; return true;
     case PM_MenuScrollerHeight: out = 16; return true;
@@ -275,7 +399,7 @@ bool AdwaitaStyle::menus_pixelMetric(PixelMetric pm, const QStyleOption *, const
     case PM_MenuBarHMargin: out = 6; return true;
     case PM_MenuBarVMargin: out = 3; return true;
     case PM_MenuBarItemSpacing: out = 2; return true;
-    case PM_ToolTipLabelFrameWidth: out = 7; return true;
+    case PM_ToolTipLabelFrameWidth: out = 6; return true;  // + margin 1 = 7 (6 padding + 1 border); 4 more each side via TipFixer
     default: break;
     }
     Q_UNUSED(w);
@@ -317,20 +441,20 @@ bool AdwaitaStyle::menus_styleHint(StyleHint sh, const QStyleOption *, const QWi
 void AdwaitaStyle::menus_polish(QWidget *w)
 {
     if (qobject_cast<QMenu *>(w) || isComboPopup(w) || isTipLabel(w)) {
-        // A translucent window is needed for the rounded corners and the popover shadow. Without a
-        // compositor (X11) the corners fall back to the window colour; set ADWAITA_NO_TRANSLUCENT=1 to force that.
-        const bool translucent = qEnvironmentVariableIsEmpty("ADWAITA_NO_TRANSLUCENT");
-        if (isTipLabel(w)) {
-            if (translucent) { w->setAttribute(Qt::WA_TranslucentBackground, true); }
-            return;
-        }
+        // A translucent window gives the rounded corners and the popover shadow. Without a compositor it would
+        // be black/opaque, so menus and tooltips become square, shadowless and opaque instead.
+        const bool translucent = compositorActive();
         if (translucent) {
             w->setWindowFlag(Qt::NoDropShadowWindowHint, true);
             w->setAttribute(Qt::WA_TranslucentBackground, true);
+            if (!isTipLabel(w) && !w->findChild<QObject *>("adwPopupPlacer")) w->installEventFilter(new PopupPlacer(w));
+            if (isComboPopup(w)) { QEvent se(QEvent::StyleChange); QCoreApplication::sendEvent(w, &se); }  // refresh the cached frame width (margin now 18)
         }
+        if (isTipLabel(w) && !w->findChild<QObject *>("adwTipFixer")) w->installEventFilter(new TipFixer(w));
+        if (isTipLabel(w)) return;
     }
     if (isComboPopup(w)) {
-        w->installEventFilter(new PopupPainter(&m_tokens, w));
+        if (!w->findChild<QObject *>("adwPopupPainter")) w->installEventFilter(new PopupPainter(&m_tokens, w));
         for (QWidget *c : w->findChildren<QWidget *>()) {
             if (c->metaObject()->className() == QByteArray("QComboBoxListView") || c->inherits("QAbstractItemView")) {
                 c->setAutoFillBackground(false);

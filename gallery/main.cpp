@@ -400,7 +400,14 @@ int main(int argc, char **argv)
             app.processEvents();
             app.processEvents();
             const QString path = QString("%1/%2@%3x.png").arg(shotDir, s.name, scale);
-            if (!w->grab().save(path)) qWarning("failed to write %s", qPrintable(path));
+            // Translucent popups (menu) grab with an alpha channel; flatten onto the window colour so viewers
+            // that drop alpha (contact sheets) do not show a black rectangle around the rounded panel.
+            const QPixmap px = w->grab();
+            QImage img(px.size(), QImage::Format_RGB32);
+            img.setDevicePixelRatio(px.devicePixelRatio());
+            img.fill(QApplication::palette().color(QPalette::Window));
+            { QPainter ip(&img); ip.drawPixmap(0, 0, px); }
+            if (!img.save(path)) qWarning("failed to write %s", qPrintable(path));
             delete w;
         }
         return 0;

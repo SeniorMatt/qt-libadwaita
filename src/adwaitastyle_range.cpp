@@ -144,8 +144,15 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
     if (cc == CC_Slider) {
         auto *s = qstyleoption_cast<const QStyleOptionSlider *>(opt);
         if (!s) return false;
+        if (!(s->state & State_Enabled)) {  // whole widget faded as one group
+            QStyleOptionSlider en = *s;
+            en.state |= State_Enabled;
+            en.state &= ~(State_MouseOver | State_Sunken);
+            drawFaded(p, s->rect, [&](QPainter *ip) { drawComplexControl(CC_Slider, &en, ip, w); });
+            return true;
+        }
         const bool horiz = s->orientation == Qt::Horizontal;
-        const bool enabled = s->state & State_Enabled;
+        const bool enabled = true;
         const bool hover = (s->state & State_MouseOver) && (s->activeSubControls & SC_SliderHandle);
         const bool grooveHover = (s->state & State_MouseOver);
         const bool active = (s->state & State_Sunken) && (s->activeSubControls & SC_SliderHandle);

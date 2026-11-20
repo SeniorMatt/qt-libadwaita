@@ -19,7 +19,7 @@
 
 namespace {
 
-constexpr int kTabH = 38;       // tab bar height; the tab shape is inset 6px (26px tall, radius 9)
+constexpr int kTabH = 46;       // AdwTabBar: 6 + 34 (26 min + 2*4 padding) + 6; the tab shape is inset 6px (34px tall, radius 9)
 constexpr int kTabInset = 6;
 constexpr int kMenuArrow = 16;
 
@@ -49,8 +49,10 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
         const QColor c = alpha(t.headerbar_fg, t.border_opacity);
         if (horizontal(b->shape)) {
             // only in a plain QTabBar; inside a QTabWidget the frame draws the line
-            if (qobject_cast<const QTabBar *>(w) && !(w->parentWidget() && w->parentWidget()->inherits("QTabWidget")))
+            if (qobject_cast<const QTabBar *>(w) && !(w->parentWidget() && w->parentWidget()->inherits("QTabWidget"))) {
+                p->fillRect(r, t.headerbar_bg);  // AdwTabBar background
                 p->fillRect(QRect(r.left(), south ? r.top() : r.bottom(), r.width(), 1), c);
+            }
         }
         return true;
     }
@@ -242,7 +244,10 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         else if (k == Destructive) lo.palette.setColor(QPalette::ButtonText, withDisabled(t.destructive_fg, opt));
         else lo.palette.setColor(QPalette::ButtonText, withDisabled(t.window_fg, opt));
         lo.palette.setColor(QPalette::WindowText, lo.palette.color(QPalette::ButtonText));
+        p->save();
+        { QFont bf = p->font(); bf.setBold(true); p->setFont(bf); lo.font.setBold(true); }  // button label weight 700
         QCommonStyle::drawControl(CE_ToolButtonLabel, &lo, p, w);
+        p->restore();
         if (arrow || split) {
             const QRect ar = split ? subControlRect(CC_ToolButton, opt, SC_ToolButtonMenu, w)
                                    : QRect(opt->rect.right() - kMenuArrow - 1, opt->rect.top(), kMenuArrow, opt->rect.height());
@@ -377,6 +382,10 @@ bool AdwaitaStyle::tabs_sizeFromContents(ContentsType ct, const QStyleOption *op
         auto *tb = qstyleoption_cast<const QStyleOptionToolButton *>(opt);
         const bool hasText = tb && !tb->text.isEmpty() && tb->toolButtonStyle != Qt::ToolButtonIconOnly;
         int wd = sz.width() + (hasText ? 18 : 10);
+        if (hasText) {  // label is drawn bold
+            QFont bf = tb->font; bf.setBold(true);
+            wd += QFontMetrics(bf).horizontalAdvance(tb->text) - tb->fontMetrics.horizontalAdvance(tb->text);
+        }
         out = QSize(qMax(wd, 34), qMax(sz.height() + 10, 34));
         return true;
     }

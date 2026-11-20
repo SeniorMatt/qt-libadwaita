@@ -92,6 +92,7 @@ void AdwaitaStyle::polish(QWidget *w)
     ADW_FAMILIES(X)
 #undef X
     QCommonStyle::polish(w);
+    polishSwitch(w);
     if (qobject_cast<QAbstractButton *>(w) || qobject_cast<QComboBox *>(w) || qobject_cast<QLineEdit *>(w))
         w->setAttribute(Qt::WA_Hover, true);
     const QString c = adwClass(w);
@@ -309,7 +310,12 @@ QSize AdwaitaStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt, c
     case CT_PushButton: {
         const bool pill = buttonKind(w, opt) == Pill;
         const int padX = pill ? 16 : int(t.button_pad_x);
-        return QSize(qMax(sz.width() + 2 * padX, int(t.button_min_height)), qMax(sz.height() + 10, int(t.button_min_height)));
+        int extra = 0;  // the label is drawn bold
+        if (auto *b = qstyleoption_cast<const QStyleOptionButton *>(opt)) if (!b->text.isEmpty()) {
+            QFont bf = w ? w->font() : QApplication::font(); bf.setBold(true);
+            extra = QFontMetrics(bf).horizontalAdvance(b->text) - b->fontMetrics.horizontalAdvance(b->text);
+        }
+        return QSize(qMax(sz.width() + extra + 2 * padX, int(t.button_min_height)), qMax(sz.height() + 10, int(t.button_min_height)));
     }
     case CT_LineEdit:
         return QSize(sz.width() + 2 * int(t.entry_pad_x), qMax(sz.height(), int(t.entry_min_height)));

@@ -62,6 +62,15 @@ add_library(adwaita MODULE
 set_target_properties(adwaita PROPERTIES PREFIX "" OUTPUT_NAME "qtlibadwaitastyle")
 target_link_libraries(adwaita PRIVATE Qt${QT_MAJOR}::Widgets Qt${QT_MAJOR}::DBus)
 target_include_directories(adwaita PRIVATE src)
+# Optional: xcb lets the style detect a running X11 compositor (_NET_WM_CM_S<n> selection owner).
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(XCB QUIET IMPORTED_TARGET xcb)
+    if(XCB_FOUND)
+        target_link_libraries(adwaita PRIVATE PkgConfig::XCB)
+        target_compile_definitions(adwaita PRIVATE ADWAITA_HAVE_XCB)
+    endif()
+endif()
 install(TARGETS adwaita LIBRARY DESTINATION "${ADWAITA_PLUGIN_DEST}")
 
 if(ADWAITA_BUILD_GALLERY)
