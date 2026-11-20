@@ -8,7 +8,9 @@
 #include <QScreen>
 #ifdef ADWAITA_HAVE_XCB
 #include <xcb/xcb.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QtGui/qguiapplication_platform.h>
+#endif
 #endif
 #include <QComboBox>
 #include <QEvent>
@@ -47,8 +49,16 @@ bool compositorActive()
     if (!qEnvironmentVariableIsEmpty("ADWAITA_NO_TRANSLUCENT")) return false;
 #ifdef ADWAITA_HAVE_XCB
     if (QGuiApplication::platformName() == QLatin1String("xcb")) {
-        if (auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
-            if (xcb_connection_t *c = x11->connection()) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        xcb_connection_t *c = nullptr;
+        if (auto *x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) c = x11->connection();
+#else
+        // Qt 5 has no public native interface for the connection: keep a small private one.
+        static xcb_connection_t *c = xcb_connect(nullptr, nullptr);
+        if (c && xcb_connection_has_error(c)) c = nullptr;
+#endif
+        {
+            if (c) {
                 int screen = 0;
                 const QByteArray d = qgetenv("DISPLAY");
                 const int dot = d.lastIndexOf('.');
@@ -166,7 +176,11 @@ private:
         if (auto *menu = qobject_cast<QMenu *>(m_w)) {
             QMenu *parent = nullptr;
             if (menu->menuAction())
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                 for (QObject *ao : menu->menuAction()->associatedObjects())
+#else
+                for (QObject *ao : menu->menuAction()->associatedWidgets())
+#endif
                     if (auto *pm = qobject_cast<QMenu *>(ao); pm && pm->isVisible() && pm != menu) parent = pm;
             if (parent) {  // submenu: panels sit side by side, y already follows Qt's item alignment
                 const QRect pg = parent->geometry();
@@ -327,8 +341,14 @@ bool AdwaitaStyle::menus_drawControl(ControlElement ce, const QStyleOption *opt,
             if (!mi->icon.isNull()) {
                 const int is = qMin(16, mi->maxIconWidth);
                 const QIcon::Mode mode = enabled ? QIcon::Normal : QIcon::Disabled;
-                p->drawPixmap(QRect(x, r.center().y() - is / 2 + 1, is, is),
-                              mi->icon.pixmap(QSize(is, is), p->device()->devicePixelRatio(), mode));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                const QPixmap ipm = mi->icon.pixmap(QSize(is, is), p->device()->devicePixelRatio(), mode);
+#else
+                const qreal idpr = p->device()->devicePixelRatioF();
+                QPixmap ipm = mi->icon.pixmap(QSize(is, is) * idpr, mode);
+                ipm.setDevicePixelRatio(idpr);
+#endif
+                p->drawPixmap(QRect(x, r.center().y() - is / 2 + 1, is, is), ipm);
             }
             x += mi->maxIconWidth + 8;
         }

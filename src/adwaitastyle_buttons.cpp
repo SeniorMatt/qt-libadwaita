@@ -83,8 +83,14 @@ bool AdwaitaStyle::drawComboLabel(const QStyleOption *opt, QPainter *p, const QW
     p->save();
     QFont bf = p->font(); bf.setBold(true); bf.setStyleStrategy(QFont::NoSubpixelAntialias); p->setFont(bf);
     if (!cb->currentIcon.isNull()) {
-        const QPixmap pm = cb->currentIcon.pixmap(cb->iconSize, p->device()->devicePixelRatio(),
-                                                  (cb->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled);
+        const QIcon::Mode im = (cb->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        const QPixmap pm = cb->currentIcon.pixmap(cb->iconSize, p->device()->devicePixelRatio(), im);
+#else
+        const qreal dpr = p->device()->devicePixelRatioF();
+        QPixmap pm = cb->currentIcon.pixmap(cb->iconSize * dpr, im);
+        pm.setDevicePixelRatio(dpr);
+#endif
         p->drawPixmap(QRect(r.left(), r.top() + (r.height() - cb->iconSize.height()) / 2, cb->iconSize.width(), cb->iconSize.height()), pm);
         r.setLeft(r.left() + cb->iconSize.width() + 6);
     }

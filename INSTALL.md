@@ -56,3 +56,9 @@ tools/shoot_qt.sh ~/.local/bin/adwaita-gallery   # full matrix into docs/qt-shot
 ```
 Token data: `python3 tools/gen_tokens.py` regenerates `src/adwaitatokens_data.h` from `data/adwaita-1.10.json`
 (CMake does this automatically when the JSON changes).
+
+## Qt 5.15 build
+
+Same sources, compile-time variant: `cmake -S . -B build-qt5 -DQT_MAJOR=5 -DCMAKE_INSTALL_PREFIX=$HOME/.local && cmake --build build-qt5`.
+Installs `qtlibadwaitastyle.so` into `<prefix>/lib/qt5/plugins/styles` (key "Libadwaita"); the gallery is named `adwaita-gallery-qt5`.
+Use it with Qt 5 apps via `QT_STYLE_OVERRIDE=Libadwaita` (and `QT_PLUGIN_PATH` if not installed in a Qt plugin dir).

@@ -469,12 +469,20 @@ int main(int argc, char **argv)
     }
     if (scale != "1") qputenv("QT_SCALE_FACTOR", scale.toUtf8());
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
     QApplication app(argc, argv);
     // Reference font: Adwaita Sans 11 (not installed on the host; load from ADWAITA_GALLERY_FONT_DIR, read-only).
     if (const QByteArray fd = qgetenv("ADWAITA_GALLERY_FONT_DIR"); !fd.isEmpty()) {
         const QStringList files = QDir(QString::fromLocal8Bit(fd)).entryList({"*.ttf", "*.otf"}, QDir::Files);
         for (const QString &f : files) QFontDatabase::addApplicationFont(QDir(QString::fromLocal8Bit(fd)).filePath(f));
+        #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         const QStringList fam = QFontDatabase::families();
+#else
+        const QStringList fam = QFontDatabase().families();
+#endif
         if (fam.contains("Adwaita Sans")) QApplication::setFont(QFont("Adwaita Sans", 11));
         if (fam.contains("Adwaita Mono")) QApplication::setFont(QFont("Adwaita Mono", 11), "QPlainTextEdit");
     }
@@ -491,6 +499,9 @@ int main(int argc, char **argv)
             w->show();
             app.processEvents();
             app.processEvents();
+            // Only the focusring sections show a focus ring; show() autofocuses the first entry elsewhere.
+            if (const QByteArray n = s.name; n != "focusring" && n != "focusring-entry")
+                if (QWidget *f = QApplication::focusWidget()) { f->clearFocus(); app.processEvents(); }
             if (s.prep) s.prep(w);
             const QString path = QString("%1/%2@%3x.png").arg(shotDir, s.name, scale);
             // Translucent popups (menu) grab with an alpha channel; flatten onto the window colour so viewers
