@@ -13,24 +13,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/7 | 10 | 32 (info) | 0 | 0.0 | 10 / 0 | FAIL |
+| buttons | 7/9/7 | 0 | 3 (info) | 0 | 0.0 | 0 / 0 | PARTIAL |
 | checks | 4/4/4 | 0 | 0 | 0.59 | 0.0 | 0 / 0.59 | OK |
-| dropdown | 2/2/2 | 0 | 21 (info) | 0 | 0.0 | 0 / 0 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0 | 0.0 | 0 / 0 | OK |
 | entries | 3/3/3 | 0 | 8 (info) | 25.08 | 0.0 | 0 / 25.08 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0.44 | 0.0 | 0 / 0.44 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0.44 | 0.0 | 0 / 0.44 | OK |
+| focusring | 2/2/2 | 0 | 20 (info) | 0.44 | 0.0 | 0 / 0.44 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0.44 | 0.0 | 0 / 0.44 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | radios | 4/4/4 | 0 | 0 | 16.18 | 0.0 | 0 / 0.59 | FAIL |
-| scrollbar | 3/4/1 | 17 | 14 | 4.18 | 0.0 | 17 / 4.18 | FAIL |
+| scrollbar | 3/4/1 | 17 | 0 | 0 | 0.0 | 17 / 0 | FAIL |
 | scrollbar-idle | 2/3/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| scrollbar-thin | 6/5/1 | 2 | 2 | 5.59 | 0.0 | 2 / 5.59 | FAIL |
+| scrollbar-thin | 6/5/1 | 2 | 2 | 5.84 | 0.0 | 2 / 5.84 | FAIL |
 | slider | 2/2/2 | 4 | 24 (info) | 0.59 | 0.0 | 4 / 0.59 | FAIL |
 | spinbutton | 2/2/2 | 0 | 0 (info) | 25.08 | 0.0 | 0 / 25.08 | FAIL |
 | switches | 4/4/4 | 2 | 0 | 40 | 0.0 | 2 / 40 | FAIL |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.64 | 0.0 | 15 / 0.64 | FAIL |
 
 ## light-orange
@@ -38,24 +38,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/7 | 10 | 32 (info) | 0 | 0.0 | 10 / 0 | FAIL |
+| buttons | 7/9/7 | 0 | 3 (info) | 0 | 0.0 | 0 / 0 | PARTIAL |
 | checks | 4/4/4 | 0 | 0 | 0.62 | 0.0 | 0 / 0.62 | OK |
-| dropdown | 2/2/2 | 0 | 21 (info) | 0 | 0.0 | 0 / 0 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0 | 0.0 | 0 / 0 | OK |
 | entries | 3/3/3 | 0 | 8 (info) | 29.99 | 0.0 | 0 / 29.99 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0 | 0.0 | 0 / 0 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0 | 0.0 | 0 / 0 | OK |
+| focusring | 2/2/2 | 0 | 20 (info) | 0 | 0.0 | 0 / 0 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0 | 0.0 | 0 / 0 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | radios | 4/4/4 | 0 | 0 | 20.5 | 0.0 | 0 / 0.62 | FAIL |
-| scrollbar | 3/4/1 | 17 | 14 | 4.18 | 0.0 | 17 / 4.18 | FAIL |
+| scrollbar | 3/4/1 | 17 | 0 | 0 | 0.0 | 17 / 0 | FAIL |
 | scrollbar-idle | 2/3/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| scrollbar-thin | 6/5/1 | 2 | 2 | 5.59 | 0.0 | 2 / 5.59 | FAIL |
+| scrollbar-thin | 6/5/1 | 2 | 2 | 5.84 | 0.0 | 2 / 5.84 | FAIL |
 | slider | 2/2/2 | 4 | 24 (info) | 0.59 | 0.0 | 4 / 0.59 | FAIL |
 | spinbutton | 2/2/2 | 0 | 0 (info) | 29.99 | 0.0 | 0 / 29.99 | FAIL |
 | switches | 4/4/4 | 2 | 0 | 41.34 | 0.0 | 2 / 41.34 | FAIL |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.64 | 0.0 | 15 / 0.64 | FAIL |
 
 ## dark-blue
@@ -63,24 +63,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/7 | 10 | 32 (info) | 0.32 | 0.0 | 10 / 0.32 | FAIL |
+| buttons | 7/9/7 | 0 | 3 (info) | 0.32 | 0.0 | 0 / 0.32 | PARTIAL |
 | checks | 4/4/4 | 0 | 0 | 0.18 | 0.0 | 0 / 0.18 | OK |
-| dropdown | 2/2/2 | 0 | 21 (info) | 0.32 | 0.0 | 0 / 0.32 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0.32 | 0.0 | 0 / 0.32 | OK |
 | entries | 3/3/3 | 0 | 8 (info) | 28.98 | 0.0 | 0 / 28.98 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0.59 | 0.0 | 0 / 0.59 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0.59 | 0.0 | 0 / 0.59 | OK |
+| focusring | 2/2/2 | 0 | 20 (info) | 0.59 | 0.0 | 0 / 0.59 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0.59 | 0.0 | 0 / 0.59 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | radios | 4/4/4 | 0 | 0 | 0.18 | 0.0 | 0 / 0.18 | OK |
-| scrollbar | 3/4/2 | 17 | 14 | 7.35 | 0.0 | 17 / 7.35 | FAIL |
+| scrollbar | 3/4/2 | 17 | 1 | 6.01 | 0.0 | 17 / 0.32 | FAIL |
 | scrollbar-idle | 2/3/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
-| scrollbar-thin | 6/5/2 | 1 | 1 | 6.23 | 0.0 | - / - | FAIL |
+| scrollbar-thin | 6/5/2 | 1 | 1 | 9.26 | 0.0 | 0 / 9.26 | FAIL |
 | slider | 2/2/2 | 2 | 24 (info) | 0 | 0.0 | 2 / 0 | OK |
 | spinbutton | 2/2/2 | 0 | 0 (info) | 28.98 | 0.0 | 0 / 28.98 | FAIL |
 | switches | 4/4/4 | 0 | 0 | 0.18 | 0.0 | 0 / 0.18 | OK |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.45 | 0.0 | 15 / 0.45 | FAIL |
 
 ## dark-orange
@@ -88,24 +88,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/6 | 10 | 33 (info) | 0.32 | 0.0 | 10 / 0.32 | FAIL |
+| buttons | 7/9/7 | 0 | 3 (info) | 0.32 | 0.0 | 0 / 0.32 | PARTIAL |
 | checks | 4/4/4 | 0 | 0 | 0.4 | 0.0 | 0 / 0.4 | OK |
-| dropdown | 2/2/2 | 0 | 24 (info) | 0.32 | 0.0 | 0 / 0.32 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0.32 | 0.0 | 0 / 0.32 | OK |
 | entries | 3/3/3 | 0 | 8 (info) | 29.57 | 0.0 | 0 / 29.57 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0.7 | 0.0 | 0 / 0.7 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0.7 | 0.0 | 0 / 0.7 | OK |
+| focusring | 2/2/2 | 0 | 20 (info) | 0.7 | 0.0 | 0 / 0.7 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0.7 | 0.0 | 0 / 0.7 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | radios | 4/4/4 | 0 | 0 | 0.4 | 0.0 | 0 / 0.4 | OK |
-| scrollbar | 3/4/2 | 17 | 14 | 9.79 | 0.0 | 17 / 9.79 | FAIL |
-| scrollbar-idle | 2/4/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
-| scrollbar-thin | 6/5/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
+| scrollbar | 3/4/2 | 17 | 1 | 6.01 | 0.0 | 17 / 0.32 | FAIL |
+| scrollbar-idle | 2/3/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
+| scrollbar-thin | 6/5/2 | 1 | 1 | 9.26 | 0.0 | 0 / 9.26 | FAIL |
 | slider | 2/2/2 | 2 | 24 (info) | 0 | 0.0 | 2 / 0 | OK |
-| spinbutton | 2/2/2 | 0 | 5 (info) | 29.57 | 0.0 | 0 / 29.57 | FAIL |
+| spinbutton | 2/2/2 | 0 | 0 (info) | 29.57 | 0.0 | 0 / 29.57 | FAIL |
 | switches | 4/4/4 | 0 | 0 | 0.4 | 0.0 | 0 / 0.4 | OK |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.45 | 0.0 | 15 / 0.45 | FAIL |
 
 ## hc-light-blue
@@ -113,24 +113,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/6 | 10 | 33 (info) | 24.84 | 0.0 | 10 / 24.84 | FAIL |
-| checks | 4/4/4 | 0 | 0 | 13.26 | 0.0 | 0 / 13.26 | FAIL |
-| dropdown | 2/2/2 | 0 | 24 (info) | 24.84 | 0.0 | 0 / 24.84 | FAIL |
+| buttons | 7/9/7 | 0 | 3 (info) | 0.49 | 0.0 | 0 / 0.49 | PARTIAL |
+| checks | 4/4/4 | 0 | 0 | 0.3 | 0.0 | 0 / 0.3 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0.49 | 0.0 | 0 / 0.49 | OK |
 | entries | 3/3/3 | 0 | 8 (info) | 26.23 | 0.0 | 0 / 26.23 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0.4 | 0.0 | 0 / 0.4 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0.4 | 0.0 | 0 / 0.4 | OK |
+| focusring | 2/2/2 | 0 | 20 (info) | 0.4 | 0.0 | 0 / 0.4 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0.4 | 0.0 | 0 / 0.4 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| radios | 4/4/4 | 0 | 0 | 33.68 | 0.0 | 0 / 11.57 | FAIL |
-| scrollbar | 3/4/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| scrollbar-idle | 2/4/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| scrollbar-thin | 6/5/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| slider | 2/2/1 | 3 | 24 (info) | 14.79 | 0.0 | 3 / 14.64 | FAIL |
-| spinbutton | 2/2/2 | 0 | 5 (info) | 26.23 | 0.0 | 0 / 26.23 | FAIL |
+| radios | 4/4/4 | 0 | 0 | 20.07 | 0.0 | 0 / 0.3 | FAIL |
+| scrollbar | 3/4/1 | 17 | 0 | 0 | 0.0 | 17 / 0 | FAIL |
+| scrollbar-idle | 2/3/0 | - | - | - | 0.0 | - / - | NO-MATCH |
+| scrollbar-thin | 6/5/1 | 2 | 2 | 13.41 | 0.0 | 2 / 13.41 | FAIL |
+| slider | 2/2/2 | 4 | 24 (info) | 0.3 | 0.0 | 0 / 19.28 | FAIL |
+| spinbutton | 2/2/2 | 0 | 0 (info) | 26.23 | 0.0 | 0 / 26.23 | FAIL |
 | switches | 4/4/4 | 2 | 0 | 40 | 0.0 | 2 / 40 | FAIL |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.64 | 0.0 | 15 / 0.64 | FAIL |
 
 ## hc-light-orange
@@ -138,24 +138,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/6 | 10 | 33 (info) | 25.14 | 0.0 | 10 / 25.14 | FAIL |
-| checks | 4/4/4 | 0 | 0 | 13.26 | 0.0 | 0 / 13.26 | FAIL |
-| dropdown | 2/2/2 | 0 | 24 (info) | 24.84 | 0.0 | 0 / 24.84 | FAIL |
+| buttons | 7/9/7 | 0 | 3 (info) | 0.49 | 0.0 | 0 / 0.49 | PARTIAL |
+| checks | 4/4/4 | 0 | 0 | 0.31 | 0.0 | 0 / 0.31 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0.49 | 0.0 | 0 / 0.49 | OK |
 | entries | 3/3/3 | 0 | 8 (info) | 31.82 | 0.0 | 0 / 31.82 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0 | 0.0 | 0 / 0 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0 | 0.0 | 0 / 0 | OK |
+| focusring | 2/2/2 | 0 | 20 (info) | 0 | 0.0 | 0 / 0 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0 | 0.0 | 0 / 0 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 1.12 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| radios | 4/4/4 | 0 | 0 | 33.68 | 0.0 | 0 / 11.57 | FAIL |
-| scrollbar | 3/4/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| scrollbar-idle | 2/4/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| scrollbar-thin | 6/5/0 | - | - | - | 0.0 | - / - | NO-MATCH |
-| slider | 2/2/1 | 3 | 24 (info) | 20.25 | 0.0 | 3 / 14.64 | FAIL |
-| spinbutton | 2/2/2 | 0 | 5 (info) | 31.82 | 0.0 | 0 / 31.82 | FAIL |
+| radios | 4/4/4 | 0 | 0 | 20.5 | 0.0 | 0 / 0.31 | FAIL |
+| scrollbar | 3/4/1 | 17 | 0 | 0 | 0.0 | 17 / 0 | FAIL |
+| scrollbar-idle | 2/3/0 | - | - | - | 0.0 | - / - | NO-MATCH |
+| scrollbar-thin | 6/5/1 | 2 | 2 | 13.41 | 0.0 | 2 / 13.41 | FAIL |
+| slider | 2/2/2 | 4 | 24 (info) | 0.31 | 0.0 | 0 / 23.05 | FAIL |
+| spinbutton | 2/2/2 | 0 | 0 (info) | 31.82 | 0.0 | 0 / 31.82 | FAIL |
 | switches | 4/4/4 | 2 | 0 | 41.34 | 0.0 | 2 / 41.34 | FAIL |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.64 | 0.0 | 15 / 0.64 | FAIL |
 
 ## hc-dark-blue
@@ -163,24 +163,24 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/6 | 10 | 33 (info) | 36.76 | 0.0 | 10 / 36.76 | FAIL |
-| checks | 4/4/4 | 0 | 0 | 17.24 | 0.0 | 0 / 17.24 | FAIL |
-| dropdown | 2/2/2 | 0 | 24 (info) | 37.76 | 0.0 | 0 / 37.76 | FAIL |
-| entries | 3/3/3 | 0 | 8 (info) | 26.2 | 0.0 | 0 / 26.2 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0.73 | 0.0 | 0 / 0.73 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0.73 | 0.0 | 0 / 0.73 | OK |
+| buttons | 7/9/7 | 0 | 3 (info) | 0.94 | 0.0 | 0 / 0.94 | PARTIAL |
+| checks | 4/4/4 | 0 | 0 | 0.23 | 0.0 | 0 / 0.23 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0.94 | 0.0 | 0 / 0.94 | OK |
+| entries | 3/3/3 | 0 | 8 (info) | 20.35 | 0.0 | 0 / 20.35 | FAIL |
+| focusring | 2/2/2 | 0 | 20 (info) | 0.73 | 0.0 | 0 / 0.73 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0.73 | 0.0 | 0 / 0.73 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| radios | 4/4/4 | 0 | 0 | 17.24 | 0.0 | 0 / 17.24 | FAIL |
-| scrollbar | 3/4/2 | 17 | 14 | 9.94 | 0.0 | 17 / 9.94 | FAIL |
-| scrollbar-idle | 2/4/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
-| scrollbar-thin | 6/5/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
-| slider | 2/2/1 | 2 | 24 (info) | 15.76 | 0.0 | 1.5 / 15.76 | FAIL |
-| spinbutton | 2/2/2 | 0 | 5 (info) | 20.35 | 0.0 | 0 / 20.35 | FAIL |
+| radios | 4/4/4 | 0 | 0 | 0.23 | 0.0 | 0 / 0.23 | OK |
+| scrollbar | 3/4/2 | 17 | 1 | 6.01 | 0.0 | 17 / 0 | FAIL |
+| scrollbar-idle | 2/3/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
+| scrollbar-thin | 6/5/2 | 1 | 1 | 20.66 | 0.0 | 0 / 20.66 | FAIL |
+| slider | 2/2/2 | 1 | 24 (info) | 0.23 | 0.0 | 1.5 / 0.23 | OK |
+| spinbutton | 2/2/2 | 0 | 0 (info) | 20.35 | 0.0 | 0 / 20.35 | FAIL |
 | switches | 4/4/4 | 0 | 0 | 0.37 | 0.0 | 0 / 0.37 | OK |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.45 | 0.0 | 15 / 0.45 | FAIL |
 
 ## hc-dark-orange
@@ -188,51 +188,51 @@ Worst dE covers main fill, border (outer pixel ring) and the window background c
 | section | widgets ref/Qt/matched | worst dH | worst dW | worst dE | bg dE | 2x dH / dE | status |
 |---|---|---|---|---|---|---|---|
 | boxedlist | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| buttons | 7/9/6 | 10 | 33 (info) | 37.24 | 0.0 | 10 / 37.24 | FAIL |
-| checks | 4/4/4 | 0 | 0 | 17.24 | 0.0 | 0 / 17.24 | FAIL |
-| dropdown | 2/2/2 | 0 | 24 (info) | 37.76 | 0.0 | 0 / 37.76 | FAIL |
-| entries | 3/3/3 | 0 | 8 (info) | 26.2 | 0.0 | 0 / 26.2 | FAIL |
-| focusring | 2/2/2 | 0 | 22 (info) | 0.57 | 0.0 | 0 / 0.57 | OK |
-| focusring-entry | 2/2/2 | 0 | 22 (info) | 0.57 | 0.0 | 0 / 0.57 | OK |
+| buttons | 7/9/7 | 0 | 3 (info) | 0.94 | 0.0 | 0 / 0.94 | PARTIAL |
+| checks | 4/4/4 | 0 | 0 | 0.48 | 0.0 | 0 / 0.48 | OK |
+| dropdown | 2/2/2 | 0 | 26 (info) | 0.94 | 0.0 | 0 / 0.94 | OK |
+| entries | 3/3/3 | 0 | 8 (info) | 24.12 | 0.0 | 0 / 24.12 | FAIL |
+| focusring | 2/2/2 | 0 | 20 (info) | 0.57 | 0.0 | 0 / 0.57 | OK |
+| focusring-entry | 2/2/2 | 0 | 20 (info) | 0.57 | 0.0 | 0 / 0.57 | OK |
 | headerbar | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| menu | 1/1/1 | 12 | 2 (info) | 0 | 0.0 | 12 / 0 | FAIL |
-| menu-shadow | 1/1/1 | 12 | 2 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
+| menu | 1/1/1 | 12 | 0 (info) | 0 | 0.0 | 12 / 0 | FAIL |
+| menu-shadow | 1/1/1 | 12 | 0 (info) | 6.36 | 0.0 | 12 / 0 | FAIL |
 | progress | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
-| radios | 4/4/4 | 0 | 0 | 17.24 | 0.0 | 0 / 17.24 | FAIL |
-| scrollbar | 3/4/2 | 17 | 14 | 9.94 | 0.0 | 17 / 9.94 | FAIL |
-| scrollbar-idle | 2/4/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
-| scrollbar-thin | 6/5/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
-| slider | 2/2/1 | 2 | 24 (info) | 23.57 | 0.0 | 1.5 / 23.57 | FAIL |
-| spinbutton | 2/2/2 | 0 | 5 (info) | 24.12 | 0.0 | 0 / 24.12 | FAIL |
+| radios | 4/4/4 | 0 | 0 | 0.48 | 0.0 | 0 / 0.48 | OK |
+| scrollbar | 3/4/2 | 17 | 1 | 6.01 | 0.0 | 17 / 0 | FAIL |
+| scrollbar-idle | 2/3/1 | 1 | 1 | 6.01 | 0.0 | - / - | FAIL |
+| scrollbar-thin | 6/5/2 | 1 | 1 | 20.66 | 0.0 | 0 / 20.66 | FAIL |
+| slider | 2/2/2 | 1 | 24 (info) | 0.48 | 0.0 | 1.5 / 0.48 | OK |
+| spinbutton | 2/2/2 | 0 | 0 (info) | 24.12 | 0.0 | 0 / 24.12 | FAIL |
 | switches | 4/4/4 | 0 | 0 | 0.48 | 0.0 | 0 / 0.48 | OK |
-| tabs | 1/1/1 | 1 | 0 (info) | 0 | 0.0 | 1 / 0 | OK |
+| tabs | 1/1/1 | 0 | 0 (info) | 0 | 0.0 | 0 / 0 | OK |
 | tooltip | 1/1/1 | 15 | 23 (info) | 0.45 | 0.0 | 15 / 0.45 | FAIL |
 
 ## Summary (1x, all scheme/accent tables)
 
-FAIL: 88, NO-MATCH: 8, OK: 64
+FAIL: 72, NO-MATCH: 4, OK: 76, PARTIAL: 8
 
 ## Top 20 problems
 
 Worst case across schemes/accents shown, with the scheme it occurs in and how many scheme/accent variants show the same problem. Radius values are rough diagonal estimates.
 
 1. switches #2 (ref 46x28 at 76,12): border/edge colour dE 41.34 (libadwaita #fafafb, Qt #ed5b00) [worst in light-orange; 4 of 8 variants]
-2. dropdown #1 (ref 109x34 at 12,12): border/edge colour dE 37.76 (libadwaita #9c9c9d, Qt #39393c) [worst in hc-dark-blue; 4 of 8 variants]
-3. buttons #7 (ref 177x34 at 192,68): border/edge colour dE 37.24 (libadwaita #733817, Qt #b99c8b) [worst in hc-dark-orange; 4 of 8 variants]
-4. radios #1 (ref 20x20 at 15,15): border/edge colour dE 33.68 (libadwaita #f8f8f9, Qt #7b7b7f) [worst in hc-light-blue; 4 of 8 variants]
-5. entries #1 (ref 168x34 at 12,12): border/edge colour dE 31.82 (libadwaita #8a8a8d, Qt #ae371c) [worst in hc-light-orange; 8 of 8 variants]
-6. spinbutton #1 (ref 106x34 at 12,12): border/edge colour dE 31.82 (libadwaita #8a8a8d, Qt #ae371c) [worst in hc-light-orange; 8 of 8 variants]
-7. buttons #5 (ref 97x34 at 533,12): border/edge colour dE 26.2 (libadwaita #535356, Qt #959597) [worst in hc-dark-blue; 4 of 8 variants]
-8. entries #3 (ref 168x34 at 372,12): border/edge colour dE 26.2 (libadwaita #535356, Qt #959597) [worst in hc-dark-blue; 4 of 8 variants]
-9. slider #2 (ref 216x22 at 276,18): main fill colour dE 23.57 (libadwaita #733817, Qt #3c3c40) [worst in hc-dark-orange; 4 of 8 variants]
-10. buttons #2 (ref 112x34 at 106,12): border/edge colour dE 22.83 (libadwaita #ed5b00, Qt #8e3702) [worst in hc-light-orange; 4 of 8 variants]
-11. buttons #6 (ref 168x44 at 12,68): border/edge colour dE 22.83 (libadwaita #ed5b00, Qt #8e3702) [worst in hc-light-orange; 4 of 8 variants]
-12. radios #2 (ref 20x20 at 59,15): border/edge colour dE 20.5 (libadwaita #fafafb, Qt #f6c4a5) [worst in light-orange; 4 of 8 variants]
-13. checks #1 (ref 20x20 at 15,15): main fill colour dE 17.24 (libadwaita #919193, Qt #656568) [worst in hc-dark-blue; 4 of 8 variants]
-14. radios #1 (ref 20x20 at 15,15): main fill colour dE 17.24 (libadwaita #919193, Qt #656568) [worst in hc-dark-blue; 4 of 8 variants]
-15. scrollbar #3 (ref 10x123 at 235,20): Qt height 140 vs ref 123 (+17 px) [worst in light-blue; 6 of 8 variants]
-16. radios #4 (ref 20x20 at 147,15): border/edge colour dE 15.48 (libadwaita #fafafb, Qt #bad4f3) [worst in light-blue; 4 of 8 variants]
-17. tooltip #1 (ref 58x18 at 0,0): Qt height 33 vs ref 18 (+15 px) [worst in light-blue; 8 of 8 variants]
-18. scrollbar #3 (ref 10x123 at 235,20): Qt width 24 vs ref 10 (+14 px) [worst in light-blue; 6 of 8 variants]
-19. switches #1 (ref 46x28 at 12,12): border/edge colour dE 13.64 (libadwaita #fafafb, Qt #bebec0) [worst in hc-light-blue; 4 of 8 variants]
-20. menu-shadow #1 (ref 176x213 at 0,0): corner radius est. Qt 41.0 vs ref 81.9 (rough estimate) [worst in light-blue; 8 of 8 variants]
+2. entries #1 (ref 168x34 at 12,12): border/edge colour dE 31.82 (libadwaita #8a8a8d, Qt #ae371c) [worst in hc-light-orange; 8 of 8 variants]
+3. spinbutton #1 (ref 106x34 at 12,12): border/edge colour dE 31.82 (libadwaita #8a8a8d, Qt #ae371c) [worst in hc-light-orange; 8 of 8 variants]
+4. scrollbar-thin #3 (ref 5x42 at 244,22): main fill colour dE 20.66 (libadwaita #414145, Qt #7a7a7d) [worst in hc-dark-blue; 8 of 8 variants]
+5. radios #2 (ref 20x20 at 59,15): border/edge colour dE 20.5 (libadwaita #fafafb, Qt #f6c4a5) [worst in light-orange; 4 of 8 variants]
+6. radios #1 (ref 20x20 at 15,15): border/edge colour dE 20.07 (libadwaita #f8f8f9, Qt #a5a5a7) [worst in hc-light-blue; 4 of 8 variants]
+7. scrollbar #3 (ref 10x123 at 235,20): Qt height 140 vs ref 123 (+17 px) [worst in light-blue; 8 of 8 variants]
+8. radios #4 (ref 20x20 at 147,15): border/edge colour dE 15.48 (libadwaita #fafafb, Qt #bad4f3) [worst in light-blue; 4 of 8 variants]
+9. tooltip #1 (ref 58x18 at 0,0): Qt height 33 vs ref 18 (+15 px) [worst in light-blue; 8 of 8 variants]
+10. switches #1 (ref 46x28 at 12,12): border/edge colour dE 13.64 (libadwaita #fafafb, Qt #bebec0) [worst in hc-light-blue; 4 of 8 variants]
+11. menu-shadow #1 (ref 176x213 at 0,0): corner radius est. Qt 41.0 vs ref 81.9 (rough estimate) [worst in light-blue; 8 of 8 variants]
+12. menu #1 (ref 128x165 at 0,0): Qt height 153 vs ref 165 (-12 px) [worst in light-blue; 8 of 8 variants]
+13. menu-shadow #1 (ref 176x213 at 0,0): Qt height 201 vs ref 213 (-12 px) [worst in light-blue; 8 of 8 variants]
+14. menu-shadow #1 (ref 176x213 at 0,0): main fill colour dE 6.36 (libadwaita #222226, Qt #36363a) [worst in dark-blue; 4 of 8 variants]
+15. menu-shadow #1 (ref 176x213 at 0,0): border/edge colour dE 6.36 (libadwaita #222226, Qt #36363a) [worst in dark-blue; 4 of 8 variants]
+16. scrollbar-thin #3 (ref 3x40 at 245,23): border/edge colour dE 6.33 (libadwaita #dfdfdf, Qt #fdfdfd) [worst in hc-light-blue; 8 of 8 variants]
+17. scrollbar #2 (ref 8x12 at 127,121): main fill colour dE 6.01 (libadwaita #242428, Qt #2c2226) [worst in dark-blue; 4 of 8 variants]
+18. scrollbar-idle #2 (ref 8x12 at 127,121): main fill colour dE 6.01 (libadwaita #242428, Qt #2c2226) [worst in dark-blue; 4 of 8 variants]
+19. scrollbar-thin #4 (ref 8x12 at 127,91): main fill colour dE 6.01 (libadwaita #242428, Qt #2c2226) [worst in dark-blue; 4 of 8 variants]
+20. scrollbar #2 (ref 8x12 at 127,121): border/edge colour dE 5.96 (libadwaita #222226, Qt #222230) [worst in dark-blue; 4 of 8 variants]
