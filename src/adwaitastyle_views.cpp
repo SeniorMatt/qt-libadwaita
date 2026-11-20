@@ -64,8 +64,28 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
             const auto pos = v->viewItemPosition;
             const bool left = pos == QStyleOptionViewItem::Beginning || pos == QStyleOptionViewItem::OnlyOne;
             const bool right = pos == QStyleOptionViewItem::End || pos == QStyleOptionViewItem::OnlyOne;
-            const bool table = qobject_cast<const QTableView *>(w);
-            if (table || pos == QStyleOptionViewItem::Invalid) { shape.addRect(r); }
+            const auto *tv = qobject_cast<const QTableView *>(w);
+            const bool table = tv;
+            if (table && !tv->showGrid()) {
+                // Table cells without grid lines are rounded like list rows (9 px), squared on the sides where the
+                // neighbouring cell is selected too, so a row selection reads as one bar. Tables with grid lines
+                // stay square: rounded fills would break the lines they sit between.
+                r.adjust(0, 1, 0, -1);
+                bool selL = false, selR = false;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                if (sel && tv->selectionModel() && v->index.isValid()) {
+                    const QModelIndex ix = v->index;
+                    selL = tv->selectionModel()->isSelected(ix.sibling(ix.row(), ix.column() - 1)) && ix.column() > 0;
+                    selR = tv->selectionModel()->isSelected(ix.sibling(ix.row(), ix.column() + 1));
+                }
+#endif
+                shape.addRoundedRect(r, rad, rad);
+                if (selL) shape.addRect(QRectF(r.left(), r.top(), qMin(rad, r.width()), r.height()));
+                if (selR) shape.addRect(QRectF(r.right() - qMin(rad, r.width()), r.top(), qMin(rad, r.width()), r.height()));
+                shape.setFillRule(Qt::WindingFill);
+                shape = shape.simplified();
+            }
+            else if (table || pos == QStyleOptionViewItem::Invalid) { shape.addRect(r); }
             else {
                 // rounded rect, then square off the inner ends
                 shape.addRoundedRect(r, rad, rad);
@@ -191,8 +211,11 @@ bool AdwaitaStyle::views_drawControl(ControlElement ce, const QStyleOption *opt,
         const bool horizontal = h->orientation == Qt::Horizontal;
         if (horizontal) {
             p->fillRect(QRect(r.left(), r.bottom(), r.width(), 1), t.border);
-            if (h->position != QStyleOptionHeader::End && h->position != QStyleOptionHeader::OnlyOneSection)
-                p->fillRect(QRect(r.right(), r.top() + 6, 1, r.height() - 13), t.border);
+            // libadwaita column headers have no separators at rest; the section edge shows a short subtle one while the
+            // section is hovered or pressed (resize affordance)
+            if (h->position != QStyleOptionHeader::End && h->position != QStyleOptionHeader::OnlyOneSection
+                && (opt->state & (State_MouseOver | State_Sunken)) && (opt->state & State_Enabled))
+                p->fillRect(QRect(r.right(), r.top() + 8, 1, r.height() - 17), t.border);
         } else {
             p->fillRect(QRect(r.right(), r.top(), 1, r.height()), t.border);
             p->fillRect(QRect(r.left() + 6, r.bottom(), r.width() - 13, 1), t.border);
@@ -266,14 +289,15 @@ bool AdwaitaStyle::views_subElementRect(SubElement se, const QStyleOption *opt, 
 }
 bool AdwaitaStyle::views_subControlRect(ComplexControl, const QStyleOptionComplex *, SubControl, const QWidget *, QRect &) const { return false; }
 
-bool AdwaitaStyle::views_pixelMetric(PixelMetric pm, const QStyleOption *, const QWidget *, int &out) const
+bool AdwaitaStyle::views_pixelMetric(PixelMetric pm, const QStyleOption *, const QWidget *w, int &out) const
 {
     switch (pm) {
     case PM_HeaderMargin: out = 9; return true;
     case PM_HeaderMarkSize: out = 10; return true;
     case PM_HeaderGripMargin: out = 4; return true;
-    case PM_TreeViewIndentation: out = 20; return true;
-    case PM_FocusFrameHMargin:
+    case PM_TreeViewIndentation: out = 16; return true;
+    case PM_FocusFrameHMargin:  // item views: Qt's text margin is this + 1, it is also the gap between check box, icon and text
+        out = (qobject_cast<const QAbstractItemView *>(w) && !inComboPopup(w)) ? 2 : 0; return true;
     case PM_FocusFrameVMargin: out = 0; return true;
     default: return false;
     }
