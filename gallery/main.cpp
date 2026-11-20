@@ -41,7 +41,7 @@
 
 namespace {
 
-// Reference layout (tools/reference/adw_gallery.py): a section is a window-coloured box of at least w x h,
+// Reference layout (tests/visual/reference-tools/adw_gallery.py): a section is a window-coloured box of at least w x h,
 // with 12 px margins, content aligned top-left, 12 px spacing (boxes `pad`, `hbox`, `vbox`).
 QWidget *sect(QLayout *l, int w, int h)
 {

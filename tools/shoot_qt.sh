@@ -1,5 +1,5 @@
 #!/bin/sh
-# Render the gallery matrix: light/dark/hc-light/hc-dark x blue/orange x 1x/2x -> docs/qt-shots/<scheme>/<accent>/
+# Render the gallery matrix: light/dark/hc-light/hc-dark x blue/orange x 1x/2x -> tests/visual/qt-shots/<scheme>/<accent>/
 # Usage: tools/shoot_qt.sh [path/to/adwaita-gallery]   (the style plugin must be found: QT_PLUGIN_PATH)
 set -e
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -16,7 +16,7 @@ for scheme in light dark hc-light hc-dark; do
   for accent in blue orange; do
     for scale in 1 2; do
       ADWAITA_COLOR_SCHEME=$cs ADWAITA_HIGH_CONTRAST=$hc ADWAITA_ACCENT=$accent \
-        "$gallery" --style Libadwaita --scale $scale --shot "$root/docs/qt-shots/$scheme/$accent"
+        "$gallery" --style Libadwaita --scale $scale --shot "$root/tests/visual/qt-shots/$scheme/$accent"
     done
   done
 done

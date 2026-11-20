@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Widget family: menus, menu bars, combo popups, tooltips (libadwaita popover.menu / tooltip, see docs/tokens.md sec. 5)
+// Widget family: menus, menu bars, combo popups, tooltips (libadwaita popover.menu / tooltip, see docs/development/tokens.md sec. 5)
 #include "adwaitastyle.h"
 #include <QWindow>
 
@@ -32,7 +32,7 @@ constexpr int kItemH = 32;
 constexpr int kItemPadX = 12;
 constexpr int kCheckCol = 24;   // check / radio indicator column
 
-// Measured from the libadwaita 1.10 reference shots (docs/reference/<scheme>/*/menu@1x.png).
+// Measured from the libadwaita 1.10 reference shots (tests/visual/reference/<scheme>/*/menu@1x.png).
 QColor menuRing(const AdwaitaTokens &t)
 {
     if (t.variant == "hc-light") return QColor(0x9a, 0x9a, 0x9c);

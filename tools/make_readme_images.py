@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Compose the README images from the gallery shots (run tools/shoot_qt.sh or tools/compare/run.sh first)."""
+"""Compose the README images from the gallery shots (run tools/shoot_qt.sh or tests/visual/compare/run.sh first)."""
 import os
 from PIL import Image, ImageDraw
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-shots = os.path.join(root, "docs/qt-shots")
+shots = os.path.join(root, "tests/visual/qt-shots")
 out = os.path.join(root, "docs/readme")
 os.makedirs(out, exist_ok=True)
 PAD = 40

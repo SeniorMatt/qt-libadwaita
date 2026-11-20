@@ -21,7 +21,7 @@ light and dark, nine accent colours, high contrast, all following your desktop s
 Qt apps on GNOME (or on a GNOME-styled KDE desktop) stick out: different buttons, different lists, different
 menus. Existing Qt themes imitate the old GTK 3 Adwaita. This one follows **current libadwaita**: its colours are
 generated from libadwaita's own stylesheet tokens, and every widget is checked against screenshots of real GTK 4
-widgets (see [docs/compare/REPORT.md](docs/compare/REPORT.md)).
+widgets (see [tests/visual/report/REPORT.md](tests/visual/report/REPORT.md)).
 
 ## Features
 
@@ -66,8 +66,7 @@ cmake -S . -B build-qt5 -DQT_MAJOR=5 -DCMAKE_INSTALL_PREFIX=$HOME/.local
 cmake --build build-qt5 -j4 && cmake --install build-qt5
 ```
 
-Details, distro plugin paths and the immutable KDE Linux route: [INSTALL.md](INSTALL.md) and
-[docs/install-kde-linux.md](docs/install-kde-linux.md).
+Details, distro plugin paths and the immutable KDE Linux route: [docs/install.md](docs/install.md).
 
 ### Turn it on
 
@@ -80,7 +79,7 @@ Details, distro plugin paths and the immutable KDE Linux route: [INSTALL.md](INS
 KDE apps also need the matching colour scheme, because they paint their content areas from it:
 
 ```sh
-mkdir -p ~/.local/share/color-schemes && cp kde-colors/*.colors ~/.local/share/color-schemes/
+mkdir -p ~/.local/share/color-schemes && cp data/kde-colors/*.colors ~/.local/share/color-schemes/
 ```
 
 ## Fonts
@@ -153,7 +152,7 @@ toggle->setProperty("adwaita-switch", true);                     // QCheckBox dr
 ```
 
 Also available: `flat`, `pill`, `headerbar`, `boxed-list` / `boxed-row`. Without them apps still get the
-libadwaita look; the classes only add the variants GTK apps choose explicitly. Full table in [INSTALL.md](INSTALL.md).
+libadwaita look; the classes only add the variants GTK apps choose explicitly. Full table and all options in [docs/configuration.md](docs/configuration.md).
 
 ## Tested with
 
@@ -162,9 +161,9 @@ Kinoklip. Telegram Desktop links Qt statically and ignores style plugins.
 
 ## How close is it?
 
-[`tools/compare/run.sh`](tools/compare) renders every widget with this style and with real GTK 4 / libadwaita,
+[`tests/visual/compare/run.sh`](tests/visual/compare) renders every widget with this style and with real GTK 4 / libadwaita,
 in four schemes and two accents, and scores the difference. Current results and the known gaps are in
-[docs/compare/REPORT.md](docs/compare/REPORT.md) and [docs/final-report.md](docs/final-report.md). The main ones:
+[tests/visual/report/REPORT.md](tests/visual/report/REPORT.md) and [docs/status.md](docs/status.md). The main ones:
 no backdrop (unfocused window) state yet, and window title bars come from the window manager, not the style.
 
 ## Credits

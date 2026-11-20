@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Widget family: scroll bars (libadwaita overlay indicators)
 //
-// Geometry (docs/tokens.md, scrollbar): the QScrollBar widget is 24 px thick (= expanded cross-axis total) and
+// Geometry (docs/development/tokens.md, scrollbar): the QScrollBar widget is 24 px thick (= expanded cross-axis total) and
 // overlaps the content (PM_ScrollView_ScrollBarOverlap). Idle it shows a 3 px slider with a 4 px far margin; on
 // hover it grows (200 ms) to an 8 px slider, 8 px margin, over a translucent trough. Idle bars fade out after a
 // timeout like GTK's overlay scrolling.

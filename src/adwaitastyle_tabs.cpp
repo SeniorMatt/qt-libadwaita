@@ -26,7 +26,7 @@ constexpr int kMenuArrow = 16;
 
 QColor alpha(QColor c, qreal a) { c.setAlphaF(a); return c; }
 
-// Colours measured from the libadwaita 1.10 reference shots (docs/reference/<scheme>/blue/{tabs,headerbar,boxedlist}@1x.png).
+// Colours measured from the libadwaita 1.10 reference shots (tests/visual/reference/<scheme>/blue/{tabs,headerbar,boxedlist}@1x.png).
 bool isDark(const AdwaitaTokens &t) { return t.variant.endsWith("dark"); }
 bool isHc(const AdwaitaTokens &t) { return t.variant.startsWith("hc-"); }
 QColor barBg(const AdwaitaTokens &t) { return isDark(t) ? QColor(0x2e, 0x2e, 0x32) : QColor(0xff, 0xff, 0xff); }

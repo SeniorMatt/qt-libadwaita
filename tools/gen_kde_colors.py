@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate KDE colour schemes (kde-colors/Libadwaita*.colors) from data/adwaita-1.10.json.
+"""Generate KDE colour schemes (data/kde-colors/Libadwaita*.colors) from data/adwaita-1.10.json.
 KDE apps (Dolphin, Kate, Okular...) paint many areas with KColorScheme from kdeglobals, not with the Qt palette,
 so they need a matching KDE colour scheme next to the style."""
 import json, os
@@ -54,5 +54,5 @@ for scheme, name, fname in [("light", "Libadwaita", "Libadwaita"), ("dark", "Lib
     out.append(f"[WM]\nactiveBackground={rgb(hb)}\nactiveBlend={rgb(hb)}\nactiveForeground={rgb(fg('headerbar_fg', W))}\n"
                f"inactiveBackground={rgb(flat(c['headerbar_backdrop'], W))}\ninactiveBlend={rgb(W)}\n"
                f"inactiveForeground={rgb(dim('headerbar_fg', W, 0.5))}\n")
-    open(os.path.join(root, "kde-colors", fname + ".colors"), "w").write("\n".join(out))
-    print("wrote kde-colors/" + fname + ".colors")
+    open(os.path.join(root, "data", "kde-colors", fname + ".colors"), "w").write("\n".join(out))
+    print("wrote data/kde-colors/" + fname + ".colors")
