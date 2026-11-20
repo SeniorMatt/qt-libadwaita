@@ -19,11 +19,37 @@
 
 namespace {
 
-constexpr int kTabH = 46;       // AdwTabBar: 6 + 34 (26 min + 2*4 padding) + 6; the tab shape is inset 6px (34px tall, radius 9)
+constexpr int kTabH = 47;       // AdwTabBar: 6 + 34 (26 min + 2*4 padding) + 6, plus the 1px bottom line; the tab shape is 34px tall, radius 9
 constexpr int kTabInset = 6;
 constexpr int kMenuArrow = 16;
 
 QColor alpha(QColor c, qreal a) { c.setAlphaF(a); return c; }
+
+// Colours measured from the libadwaita 1.10 reference shots (docs/reference/<scheme>/blue/{tabs,headerbar,boxedlist}@1x.png).
+bool isDark(const AdwaitaTokens &t) { return t.variant.endsWith("dark"); }
+bool isHc(const AdwaitaTokens &t) { return t.variant.startsWith("hc-"); }
+QColor barBg(const AdwaitaTokens &t) { return isDark(t) ? QColor(0x2e, 0x2e, 0x32) : QColor(0xff, 0xff, 0xff); }
+QColor barLine(const AdwaitaTokens &t)
+{
+    if (t.variant == "hc-light") return QColor(0x99, 0x99, 0x9b);
+    if (t.variant == "hc-dark") return QColor(0x97, 0x97, 0x99);
+    return isDark(t) ? QColor(0x1d, 0x1d, 0x22) : QColor(0xe1, 0xe1, 0xe1);
+}
+QColor tabFill(const AdwaitaTokens &t, qreal level)  // level 0.8 = selected, 0.5 = hover, 1.6 = pressed (x of the base .10)
+{
+    return alpha(isDark(t) ? QColor(Qt::white) : QColor(Qt::black), (isDark(t) ? 0.10 : 0.08) * level / 0.8);
+}
+QColor listSep(const AdwaitaTokens &t)
+{
+    if (isHc(t)) return QColor(0x99, 0x99, 0x9b);
+    return isDark(t) ? QColor(0x21, 0x21, 0x25) : QColor(0xee, 0xee, 0xee);
+}
+QColor listRing(const AdwaitaTokens &t)
+{
+    if (t.variant == "hc-light") return QColor(0x90, 0x90, 0x93);
+    if (t.variant == "hc-dark") return QColor(0x8c, 0x8c, 0x8e);
+    return isDark(t) ? QColor(0x20, 0x20, 0x24) : QColor(0xe4, 0xe4, 0xe5);
+}
 
 bool horizontal(QTabBar::Shape s) { return s == QTabBar::RoundedNorth || s == QTabBar::RoundedSouth || s == QTabBar::TriangularNorth || s == QTabBar::TriangularSouth; }
 
@@ -46,11 +72,11 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
         // bottom (or top) line like the tab bar's headerbar-shade
         const QRect r = opt->rect;
         const bool south = b->shape == QTabBar::RoundedSouth || b->shape == QTabBar::TriangularSouth;
-        const QColor c = alpha(t.headerbar_fg, t.border_opacity);
+        const QColor c = barLine(t);
         if (horizontal(b->shape)) {
             // only in a plain QTabBar; inside a QTabWidget the frame draws the line
             if (qobject_cast<const QTabBar *>(w) && !(w->parentWidget() && w->parentWidget()->inherits("QTabWidget"))) {
-                p->fillRect(r, t.headerbar_bg);  // AdwTabBar background
+                p->fillRect(r, barBg(t));  // AdwTabBar background
                 p->fillRect(QRect(r.left(), south ? r.top() : r.bottom(), r.width(), 1), c);
             }
         }
@@ -67,6 +93,29 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
         Q_UNUSED(f);
         return true;
     }
+    case PE_Widget: {
+        const QString c = adwClass(w);
+        if (c == "headerbar") {
+            p->fillRect(opt->rect, barBg(t));
+            p->fillRect(QRect(opt->rect.left(), opt->rect.bottom(), opt->rect.width(), 1), barLine(t));
+            return true;
+        }
+        if (c == "boxed-list") {  // AdwPreferencesGroup card: 12px radius, 1px ring (drawn inside our rect)
+            p->save(); p->setRenderHint(QPainter::Antialiasing);
+            p->setPen(Qt::NoPen);
+            p->setBrush(listRing(t));
+            p->drawRoundedRect(QRectF(opt->rect), t.radius_card, t.radius_card);
+            p->setBrush(isDark(t) ? QColor(0x33, 0x33, 0x37) : QColor(Qt::white));  // card-bg (the token is off in hc-dark)
+            p->drawRoundedRect(QRectF(opt->rect).adjusted(1, 1, -1, -1), t.radius_card - 1, t.radius_card - 1);
+            p->restore(); return true;
+        }
+        if (c == "boxed-row") {  // separator on top of every row but the first
+            if (w && w->property("adwaita-row-index").toInt() > 0)
+                p->fillRect(QRect(opt->rect.left(), opt->rect.top(), opt->rect.width(), 1), listSep(t));
+            return true;
+        }
+        return false;
+    }
     case PE_IndicatorTabClose: {
         const bool hover = opt->state & State_MouseOver, down = opt->state & State_Sunken;
         p->save();
@@ -78,12 +127,10 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
             const qreal s = qMin(r.width(), r.height());
             p->drawEllipse(r.center(), s / 2, s / 2);
         }
-        QColor c = t.window_fg;
-        if (!(hover || down)) c.setAlphaF(c.alphaF() * 0.55);
-        p->setPen(QPen(c, 1.6, Qt::SolidLine, Qt::RoundCap));
+        p->setPen(QPen(t.window_fg, 2.0, Qt::SolidLine, Qt::RoundCap));  // window-close-symbolic: bold, full colour
         const QPointF m = r.center();
-        p->drawLine(m + QPointF(-3.5, -3.5), m + QPointF(3.5, 3.5));
-        p->drawLine(m + QPointF(-3.5, 3.5), m + QPointF(3.5, -3.5));
+        p->drawLine(m + QPointF(-3.3, -3.3), m + QPointF(3.3, 3.3));
+        p->drawLine(m + QPointF(-3.3, 3.3), m + QPointF(3.3, -3.3));
         p->restore();
         return true;
     }
@@ -117,24 +164,48 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         const bool hover = (tab->state & State_MouseOver) && (tab->state & State_Enabled);
         const bool down = tab->state & State_Sunken;
         QRectF r(opt->rect);
-        if (horizontal(tab->shape)) r.adjust(2, kTabInset, -2, -kTabInset);
-        else r.adjust(kTabInset, 2, -kTabInset, -2);
-        qreal a = sel ? (hover ? 0.13 : 0.10) : hover ? 0.07 : 0;
-        if (down) a = sel ? 0.19 : 0.16;
+        if (horizontal(tab->shape)) r = QRectF(r.left() + 3.5, r.top() + kTabInset, r.width() - 7, 34);
+        else r.adjust(kTabInset, 3.5, -kTabInset, -3.5);
+        qreal lv = sel ? (hover ? 1.0 : 0.8) : hover ? 0.5 : 0;
+        if (down) lv = sel ? 1.5 : 1.2;
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
-        if (a > 0) {
+        if (lv > 0) {
             p->setPen(Qt::NoPen);
-            p->setBrush(alpha(t.window_fg, a));
-            p->drawRoundedRect(r, t.radius, t.radius);
+            p->setBrush(tabFill(t, lv));
+            p->drawRoundedRect(r, 9, 9);
+            if (isHc(t) && sel) {
+                p->setBrush(Qt::NoBrush);
+                p->setPen(QPen(isDark(t) ? QColor(0xa1, 0xa1, 0xa3) : QColor(0x8d, 0x8d, 0x8f), 1));
+                p->drawRoundedRect(r.adjusted(.5, .5, -.5, -.5), 8.5, 8.5);
+            }
         }
         p->restore();
-        if (focusVisible(opt, w) && (tab->state & State_Selected)) drawFocusRing(p, r, t.radius);
+        if (focusVisible(opt, w) && (tab->state & State_Selected)) drawFocusRing(p, r, 9);
         return true;
     }
     case CE_TabBarTabLabel: {
         auto *tab = qstyleoption_cast<const QStyleOptionTab *>(opt);
         if (!tab) return false;
+        if (horizontal(tab->shape)) {  // AdwTabBar: title centred in the whole tab, the close button floats on the right
+            p->save();
+            const QRect tr = tab->rect.adjusted(26, 0, -26, 0);
+            const int isz = 16;
+            const bool hasIcon = !tab->icon.isNull();
+            const int tw = qMin(p->fontMetrics().horizontalAdvance(tab->text), tr.width() - (hasIcon ? isz + 6 : 0));
+            const QString txt = p->fontMetrics().elidedText(tab->text, Qt::ElideRight, tr.width() - (hasIcon ? isz + 6 : 0));
+            const int total = tw + (hasIcon ? isz + 6 : 0);
+            int x = tr.center().x() - total / 2 + (total % 2 ? 0 : 0);
+            if (hasIcon) {
+                tab->icon.paint(p, QRect(x, tr.center().y() - isz / 2 + 1, isz, isz), Qt::AlignCenter,
+                                (tab->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled);
+                x += isz + 6;
+            }
+            p->setPen(withDisabled(t.window_fg, opt));
+            p->drawText(QRect(x, tab->rect.top(), tw + 2, tab->rect.height() - 1), Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine, txt);
+            p->restore();
+            return true;
+        }
         QStyleOptionTab o = *tab;
         o.palette.setColor(QPalette::WindowText, withDisabled(t.window_fg, opt));
         o.palette.setColor(QPalette::ButtonText, withDisabled(t.window_fg, opt));
@@ -146,8 +217,8 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         auto *tb = qstyleoption_cast<const QStyleOptionToolBar *>(opt);
         if (!tb) return false;
         if (tb->state & State_Horizontal) {
-            p->fillRect(opt->rect, t.headerbar_bg);
-            p->fillRect(QRect(opt->rect.left(), opt->rect.bottom(), opt->rect.width(), 1), alpha(t.headerbar_fg, t.border_opacity));
+            p->fillRect(opt->rect, barBg(t));
+            p->fillRect(QRect(opt->rect.left(), opt->rect.bottom(), opt->rect.width(), 1), barLine(t));
         }
         return true;
     }
@@ -205,9 +276,12 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         const QString c = adwClass(w);
         const ButtonKind k = c.isEmpty() ? Flat : buttonKind(w, opt);
         const bool split = tb->subControls & SC_ToolButtonMenu;
-        const bool arrow = (tb->features & QStyleOptionToolButton::HasMenu) && !split;
+        const bool circ = c.split(' ', Qt::SkipEmptyParts).contains("circular");
+        const bool iconOnly = tb->text.isEmpty() || tb->toolButtonStyle == Qt::ToolButtonIconOnly;
+        // libadwaita menu buttons with an icon (open-menu-symbolic) show no dropdown arrow
+        const bool arrow = (tb->features & QStyleOptionToolButton::HasMenu) && !split && !iconOnly;
         const QRectF r(opt->rect);
-        const qreal rad = k == Pill ? r.height() / 2 : t.radius;
+        const qreal rad = (k == Pill || circ) ? r.height() / 2 : t.radius;
         QStyleOption bo = *opt;
         if (tb->state & State_Raised) bo.state &= ~State_Sunken;
         if (!(tb->state & State_Enabled)) bo.state &= ~State_MouseOver;
@@ -226,6 +300,9 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
             p->setBrush(buttonFill(k, &menuOpt));
             p->drawRoundedRect(QRectF(mr).adjusted(0, 0, 0, 0), rad, rad);
             p->fillRect(QRect(mr.left(), mr.top() + 6, 1, mr.height() - 12), t.border);
+        } else if (circ && !(tb->state & (State_MouseOver | State_Sunken))) {
+            p->setBrush(tabFill(t, 0.8));  // window-control circle: always filled
+            p->drawRoundedRect(r, rad, rad);
         } else {
             p->setBrush(buttonFill(k, &bo));
             p->drawRoundedRect(r, rad, rad);
@@ -293,8 +370,14 @@ bool AdwaitaStyle::tabs_subElementRect(SubElement se, const QStyleOption *opt, c
 {
     Q_UNUSED(w);
     switch (se) {
+    case SE_TabBarTabRightButton: {
+        auto *tab = qstyleoption_cast<const QStyleOptionTab *>(opt);
+        if (!tab || !horizontal(tab->shape)) return false;
+        const int sz = 20;  // glyph centre 16px inside the pill's right edge
+        out = QRect(tab->rect.right() + 1 - 3 - 16 - sz / 2 - 1, tab->rect.top() + (tab->rect.height() - 1 - sz) / 2, sz, sz);
+        return true;
+    }
     case SE_TabBarTabLeftButton:
-    case SE_TabBarTabRightButton:
     case SE_TabBarTabText:
         return false;
     case SE_ToolBarHandle:
@@ -386,7 +469,8 @@ bool AdwaitaStyle::tabs_sizeFromContents(ContentsType ct, const QStyleOption *op
             QFont bf = tb->font; bf.setBold(true);
             wd += QFontMetrics(bf).horizontalAdvance(tb->text) - tb->fontMetrics.horizontalAdvance(tb->text);
         }
-        out = QSize(qMax(wd, 34), qMax(sz.height() + 10, 34));
+        const bool circ = adwClass(w).split(' ', Qt::SkipEmptyParts).contains("circular");
+        out = circ ? QSize(24, 24) : QSize(qMax(wd, 34), qMax(sz.height() + 10, 34));
         return true;
     }
     case CT_Splitter:

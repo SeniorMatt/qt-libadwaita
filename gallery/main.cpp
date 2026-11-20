@@ -236,7 +236,7 @@ QWidget *headerbar()
     auto *m = new QMenu(mb); m->addAction("Item");
     mb->setMenu(m); mb->setPopupMode(QToolButton::InstantPopup);
     l->addWidget(mb);
-    l->addWidget(hbIcon("window-close-symbolic", "✕"));  // ":close" decoration layout
+    { auto *cb = hbIcon("window-close-symbolic", "✕"); cb->setProperty("adwaita-class", "flat circular"); l->addWidget(cb); }  // ":close" decoration layout
     auto *wl = new QHBoxLayout; wl->setContentsMargins(0, 0, 0, 0); wl->addWidget(hb, 0, Qt::AlignTop); wl->addStretch();
     return sect(wl, 560, 72);
 }

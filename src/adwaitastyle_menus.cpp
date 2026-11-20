@@ -28,6 +28,16 @@ constexpr int kItemH = 32;
 constexpr int kItemPadX = 12;
 constexpr int kCheckCol = 24;   // check / radio indicator column
 
+// Measured from the libadwaita 1.10 reference shots (docs/reference/<scheme>/*/menu@1x.png).
+QColor menuRing(const AdwaitaTokens &t)
+{
+    if (t.variant == "hc-light") return QColor(0x9a, 0x9a, 0x9c);
+    if (t.variant == "hc-dark") return QColor(0x9a, 0x9a, 0x9c);
+    return t.variant == "dark" ? QColor(0x54, 0x54, 0x57) : QColor(0xe1, 0xe1, 0xe1);
+}
+// hover fill of popover/menu items: black .08 in light, white .10 in dark
+qreal hoverA(const AdwaitaTokens &t, bool down) { const bool light = t.variant.endsWith("light"); return down ? (light ? 0.16 : 0.19) : (light ? 0.08 : 0.10); }
+
 QColor alpha(QColor c, qreal a) { c.setAlphaF(a); return c; }
 
 // Is a compositing manager running? Wayland and offscreen: always. X11: owner of _NET_WM_CM_S<screen>.
@@ -235,11 +245,11 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
             p->setCompositionMode(QPainter::CompositionMode_SourceOver);
             shadowLayer(p, r, rad, 2, 3, 14, 0.05);
             shadowLayer(p, r, rad, 1, 1, 5, 0.09);
-            p->setPen(QPen(t.variant.startsWith("hc-") ? t.border : QColor(0, 0, 0, 13), 1));
+            p->setPen(QPen(menuRing(t), 1));
             p->setBrush(Qt::NoBrush);
             p->drawRoundedRect(r.adjusted(-.5, -.5, .5, .5), rad + .5, rad + .5);
         }
-        p->setPen(translucent ? Qt::NoPen : QPen(t.border, 1));
+        p->setPen(translucent ? Qt::NoPen : QPen(menuRing(t), 1));
         p->setBrush(t.popover_bg);
         p->drawRoundedRect(r.adjusted(translucent ? 0 : .5, translucent ? 0 : .5, translucent ? 0 : -.5, translucent ? 0 : -.5),
                            rad, rad);
@@ -287,7 +297,7 @@ bool AdwaitaStyle::menus_drawControl(ControlElement ce, const QStyleOption *opt,
         const bool sel = (mi->state & State_Selected) && enabled;
         if (sel) {
             p->setPen(Qt::NoPen);
-            p->setBrush(alpha(t.popover_fg, (mi->state & State_Sunken) ? 0.19 : 0.10));
+            p->setBrush(alpha(t.variant.endsWith("light") ? QColor(Qt::black) : QColor(Qt::white), hoverA(t, mi->state & State_Sunken)));
             p->drawRoundedRect(QRectF(r), t.radius, t.radius);
             if (t.variant.startsWith("hc-")) {
                 p->setBrush(Qt::NoBrush); p->setPen(QPen(t.border, 1));
@@ -412,7 +422,7 @@ bool AdwaitaStyle::menus_sizeFromContents(ContentsType ct, const QStyleOption *o
         auto *mi = qstyleoption_cast<const QStyleOptionMenuItem *>(opt);
         if (!mi) return false;
         if (mi->menuItemType == QStyleOptionMenuItem::Separator) { out = QSize(sz.width(), 13); return true; }
-        int w = sz.width() + 2 * kItemPadX;
+        int w = sz.width() + 2 * kItemPadX - 2;  // -2: measured against the reference popover (128 vs 130 wide)
         if (mi->menuHasCheckableItems) w += kCheckCol;
         if (mi->maxIconWidth > 0) w += mi->maxIconWidth + 8;
         if (mi->menuItemType == QStyleOptionMenuItem::SubMenu) w += 20;
