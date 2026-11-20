@@ -1,0 +1,8 @@
+libadwaita 1.10.0
+gtk 4.24.1
+gtk-font-name(set) Adwaita Sans 11
+gtk-icon-theme Adwaita
+gtk-theme Adwaita-empty
+xft-antialias 1 hintstyle hintslight rgba none
+dark True high_contrast True accent orange
+scale 2
