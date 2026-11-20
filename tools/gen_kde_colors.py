@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generate KDE colour schemes (data/kde-colors/Libadwaita*.colors) from data/adwaita-1.10.json.
+"""Generate KDE colour schemes (data/kde-colors/Libadwaita*.colors) from the active token file (data/current).
 KDE apps (Dolphin, Kate, Okular...) paint many areas with KColorScheme from kdeglobals, not with the Qt palette,
 so they need a matching KDE colour scheme next to the style."""
 import json, os
+import tokensource
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-d = json.load(open(os.path.join(root, "data/adwaita-1.10.json")))
+d = json.load(open(tokensource.active_path()))
 
 def flat(c, over):
     a = c["a"]

@@ -26,14 +26,22 @@ else()
     set(ADWAITA_PLUGIN_DEST "${ADWAITA_PLUGIN_DIR}")
 endif()
 
-# Regenerate src/adwaitatokens_data.h from data/adwaita-1.10.json when the JSON exists.
+# Regenerate src/adwaitatokens_data.h from the active libadwaita token file. data/current names it (one line, e.g.
+# "adwaita-1.10.json"); switch versions by editing that file (tools/update_libadwaita.py --apply does it).
 find_package(Python3 QUIET COMPONENTS Interpreter)
-if(Python3_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/data/adwaita-1.10.json")
+set(ADWAITA_TOKENS_JSON "")
+if(EXISTS "${CMAKE_SOURCE_DIR}/data/current")
+    file(STRINGS "${CMAKE_SOURCE_DIR}/data/current" _adw_current LIMIT_COUNT 1)
+    set(ADWAITA_TOKENS_JSON "${CMAKE_SOURCE_DIR}/data/${_adw_current}")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/data/current")
+endif()
+if(Python3_FOUND AND ADWAITA_TOKENS_JSON AND EXISTS "${ADWAITA_TOKENS_JSON}")
     add_custom_command(
         OUTPUT "${CMAKE_SOURCE_DIR}/src/adwaitatokens_data.h"
         COMMAND ${Python3_EXECUTABLE} "${CMAKE_SOURCE_DIR}/tools/gen_tokens.py"
-        DEPENDS "${CMAKE_SOURCE_DIR}/data/adwaita-1.10.json" "${CMAKE_SOURCE_DIR}/tools/gen_tokens.py"
-        COMMENT "Generating adwaitatokens_data.h")
+        DEPENDS "${ADWAITA_TOKENS_JSON}" "${CMAKE_SOURCE_DIR}/data/current"
+                "${CMAKE_SOURCE_DIR}/tools/gen_tokens.py" "${CMAKE_SOURCE_DIR}/tools/tokensource.py"
+        COMMENT "Generating adwaitatokens_data.h from ${_adw_current}")
     set(TOKENS_DATA "${CMAKE_SOURCE_DIR}/src/adwaitatokens_data.h")
 endif()
 
