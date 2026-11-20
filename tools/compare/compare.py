@@ -170,7 +170,7 @@ def align(R, Q):
 def compare_section(rp, qp, scale, section, win_bg):
     ri, qi = load(rp, win_bg), load(qp, win_bg)
     whole = section in WHOLE
-    R, rbg = widgets(ri, scale, whole=whole); Q, qbg = widgets(qi, scale, tol=30 if whole else 4)
+    R, rbg = widgets(ri, scale, whole=whole); Q, qbg = widgets(qi, scale, tol=30 if whole else 4, whole=whole)  # gallery crops popups/tooltip tight, like the reference
     if whole and Q:
         Q = [max(Q, key=lambda w: w["w"] * w["h"])]
     ra, qa = np.asarray(ri).astype(np.int32), np.asarray(qi).astype(np.int32)

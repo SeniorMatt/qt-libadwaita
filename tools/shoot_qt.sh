@@ -4,6 +4,12 @@
 set -e
 root=$(cd "$(dirname "$0")/.." && pwd)
 gallery=${1:-adwaita-gallery}
+# Reference font (Adwaita Sans/Mono) from the GNOME 51 runtime, read-only; override with ADWAITA_GALLERY_FONT_DIR.
+if [ -z "${ADWAITA_GALLERY_FONT_DIR+x}" ]; then
+  loc=$(flatpak info --show-location org.gnome.Platform//51 2>/dev/null || true)
+  [ -n "$loc" ] && [ -d "$loc/files/share/fonts/Adwaita" ] && ADWAITA_GALLERY_FONT_DIR=$loc/files/share/fonts/Adwaita
+fi
+export ADWAITA_GALLERY_FONT_DIR
 for scheme in light dark hc-light hc-dark; do
   case $scheme in light) cs=light hc=0;; dark) cs=dark hc=0;; hc-light) cs=light hc=1;; hc-dark) cs=dark hc=1;; esac
   for accent in blue orange; do

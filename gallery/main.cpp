@@ -7,6 +7,9 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
+#include <QEnterEvent>
+#include <QEventLoop>
+#include <QFontDatabase>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -17,6 +20,7 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSlider>
 #include <QSpinBox>
 #include <QStyle>
@@ -37,11 +41,42 @@
 
 namespace {
 
-QWidget *page(QLayout *l, int w = 420)
+// Reference layout (tools/reference/adw_gallery.py): a section is a window-coloured box of at least w x h,
+// with 12 px margins, content aligned top-left, 12 px spacing (boxes `pad`, `hbox`, `vbox`).
+QWidget *sect(QLayout *l, int w, int h)
 {
     auto *p = new QWidget;
     p->setAutoFillBackground(true);
     p->setAttribute(Qt::WA_KeyboardFocusChange, true);  // keyboard-navigation state: focus rings visible
+    auto *outer = new QVBoxLayout(p);
+    outer->setContentsMargins(12, 12, 12, 12);
+    outer->setSpacing(0);
+    outer->addLayout(l);
+    outer->addStretch();
+    p->ensurePolished();
+    p->setFixedSize(qMax(w, p->sizeHint().width()), h);  // reference boxes have an exact requested height
+    return p;
+}
+// Horizontal / vertical box, content packed to the start (halign/valign START).
+QHBoxLayout *hbox(std::initializer_list<QWidget *> kids, int sp = 12)
+{
+    auto *l = new QHBoxLayout; l->setContentsMargins(0, 0, 0, 0); l->setSpacing(sp);
+    for (auto *k : kids) l->addWidget(k, 0, Qt::AlignTop);
+    l->addStretch();
+    return l;
+}
+QVBoxLayout *vbox(std::initializer_list<QLayout *> kids, int sp = 12)
+{
+    auto *l = new QVBoxLayout; l->setContentsMargins(0, 0, 0, 0); l->setSpacing(sp);
+    for (auto *k : kids) l->addLayout(k);
+    return l;
+}
+// Legacy helper for the Qt-only sections.
+QWidget *page(QLayout *l, int w = 420)
+{
+    auto *p = new QWidget;
+    p->setAutoFillBackground(true);
+    p->setAttribute(Qt::WA_KeyboardFocusChange, true);
     l->setContentsMargins(24, 24, 24, 24);
     l->setSpacing(12);
     p->setLayout(l);
@@ -56,6 +91,11 @@ QPushButton *btn(const QString &text, const char *cls = nullptr, bool enabled = 
     b->setEnabled(enabled);
     return b;
 }
+QPushButton *btn2(const QString &text, const char *c1, const char *c2, bool enabled = true)
+{
+    Q_UNUSED(c2);  // style supports one "adwaita-class" only: combined suggested+pill renders as suggested
+    return btn(text, c1, enabled);
+}
 
 QCheckBox *sw(bool on, bool enabled, const QString &text = {})
 {
@@ -68,178 +108,198 @@ QCheckBox *sw(bool on, bool enabled, const QString &text = {})
 
 QWidget *buttons()
 {
-    auto *l = new QVBoxLayout;
-    auto *row = new QHBoxLayout;
-    row->addWidget(btn("Button"));
-    row->addWidget(btn("Suggested", "suggested-action"));
-    row->addWidget(btn("Destructive", "destructive-action"));
-    l->addLayout(row);
-    auto *row2 = new QHBoxLayout;
-    row2->addWidget(btn("Flat", "flat"));
-    row2->addWidget(btn("Pill", "pill"));
-    row2->addWidget(btn("Disabled", nullptr, false));
-    l->addLayout(row2);
-    return page(l, 460);
+    return sect(vbox({
+        hbox({btn("Button"), btn("Suggested", "suggested-action"), btn("Destructive", "destructive-action"),
+              btn("Flat", "flat"), btn("Pill", "pill"), btn("Disabled", nullptr, false)}),
+        hbox({btn2("Suggested pill", "suggested-action", "pill"), btn("Disabled suggested", "suggested-action", false),
+              btn("Disabled flat", "flat", false)})}), 560, 130);
 }
 
 QWidget *entries()
 {
-    auto *l = new QVBoxLayout;
     auto *a = new QLineEdit; a->setPlaceholderText("Placeholder");
     auto *b = new QLineEdit("Some text");
     auto *c = new QLineEdit("Disabled"); c->setEnabled(false);
-    l->addWidget(a); l->addWidget(b); l->addWidget(c);
-    return page(l);
+    for (auto *e : {a, b, c}) e->setFixedWidth(160);
+    return sect(hbox({a, b, c}), 680, 70);
 }
 
 QWidget *spinbutton()
 {
-    auto *l = new QVBoxLayout;
     auto *s = new QSpinBox; s->setValue(42);
     auto *d = new QSpinBox; d->setValue(7); d->setEnabled(false);
-    l->addWidget(s); l->addWidget(d);
-    return page(l, 280);
+    return sect(hbox({s, d}), 560, 70);
 }
 
 QWidget *dropdown()
 {
-    auto *l = new QVBoxLayout;
-    auto *c = new QComboBox; c->addItems({"First", "Second", "Third"});
-    l->addWidget(c);
-    return page(l, 280);
+    auto *c = new QComboBox; c->addItems({"First item", "Second item", "Third item"});
+    auto *d = new QComboBox; d->addItems({"Disabled item"}); d->setEnabled(false);
+    return sect(hbox({c, d}), 560, 70);
 }
 
 QWidget *switches()
 {
-    auto *l = new QVBoxLayout;
-    l->addWidget(sw(false, true, "Off"));
-    l->addWidget(sw(true, true, "On"));
-    l->addWidget(sw(false, false, "Disabled off"));
-    l->addWidget(sw(true, false, "Disabled on"));
-    return page(l, 280);
+    return sect(hbox({sw(false, true), sw(true, true), sw(false, false), sw(true, false)}, 18), 560, 64);
 }
 
 QWidget *checks()
 {
-    auto *l = new QVBoxLayout;
-    auto *a = new QCheckBox("Unchecked");
-    auto *b = new QCheckBox("Checked"); b->setChecked(true);
-    auto *c = new QCheckBox("Disabled"); c->setEnabled(false);
-    auto *d = new QCheckBox("Disabled checked"); d->setChecked(true); d->setEnabled(false);
-    for (auto *x : {a, b, c, d}) l->addWidget(x);
-    return page(l, 280);
+    auto mk = [](bool on, bool en) { auto *c = new QCheckBox; c->setChecked(on); c->setEnabled(en); return c; };
+    return sect(hbox({mk(false, true), mk(true, true), mk(false, false), mk(true, false)}, 18), 560, 64);
 }
 
 QWidget *radios()
 {
-    auto *l = new QVBoxLayout;
-    auto *a = new QRadioButton("Off");
-    auto *b = new QRadioButton("On"); b->setChecked(true);
-    auto *c = new QRadioButton("Disabled"); c->setEnabled(false);
-    auto *d = new QRadioButton("Disabled on"); d->setChecked(true); d->setEnabled(false);
-    for (auto *x : {a, b, c, d}) l->addWidget(x);
-    return page(l, 280);
+    auto mk = [](bool on, bool en) { auto *r = new QRadioButton; r->setAutoExclusive(false); r->setChecked(on); r->setEnabled(en); return r; };
+    // reference: off, on, disabled off, disabled on
+    return sect(hbox({mk(false, true), mk(true, true), mk(false, false), mk(true, false)}, 18), 560, 64);
 }
 
 QWidget *slider()
 {
-    auto *l = new QVBoxLayout;
     auto *a = new QSlider(Qt::Horizontal); a->setValue(40);
     auto *b = new QSlider(Qt::Horizontal); b->setValue(40); b->setEnabled(false);
-    l->addWidget(a); l->addWidget(b);
-    return page(l);
+    for (auto *s : {a, b}) s->setFixedWidth(240);
+    return sect(hbox({a, b}), 560, 70);
 }
 
+// 240x140 scrolled window, "Scrollable line N" x60, label margins 12 (reference: Gtk.ScrolledWindow, overlay scrolling).
+QScrollArea *scrollArea()
+{
+    QStringList lines;
+    for (int i = 0; i < 60; ++i) lines << QString("Scrollable line %1").arg(i);
+    auto *lab = new QLabel(lines.join('\n'));
+    lab->setContentsMargins(12, 0, 12, 0);
+    lab->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    auto *sa = new QScrollArea;
+    sa->setFrameShape(QFrame::NoFrame);
+    sa->setWidget(lab);
+    sa->setFixedSize(240, 140);
+    sa->viewport()->setAutoFillBackground(false);
+    for (auto *b : {sa->verticalScrollBar(), sa->horizontalScrollBar()}) { b->setAutoFillBackground(true); b->setBackgroundRole(QPalette::Window); }  // translucent overlay trough needs an opaque base in an offscreen grab
+    lab->setAutoFillBackground(false);
+    lab->setProperty("_gallery_label", true);
+    return sa;
+}
+QScrollArea *g_scrollArea = nullptr;
 QWidget *scrollbar()
 {
-    auto *l = new QVBoxLayout;
-    auto *sa = new QScrollArea;
-    auto *inner = new QWidget;
-    auto *il = new QVBoxLayout(inner);
-    for (int i = 1; i <= 30; ++i) il->addWidget(new QLabel(QString("Row %1").arg(i)));
-    sa->setWidget(inner);
-    sa->setFixedHeight(180);
-    l->addWidget(sa);
-    return page(l);
+    g_scrollArea = scrollArea();
+    auto *l = new QHBoxLayout; l->setContentsMargins(0, 0, 0, 0); l->addWidget(g_scrollArea, 0, Qt::AlignTop); l->addStretch();
+    return sect(l, 560, 170);
 }
 
 QWidget *tabs()
 {
-    auto *l = new QVBoxLayout;
     auto *t = new QTabBar;
     t->addTab("First"); t->addTab("Second"); t->addTab("Third");
-    l->addWidget(t);
-    l->addStretch();
-    return page(l);
+    t->setExpanding(true);
+    t->setDrawBase(true);
+    t->setCurrentIndex(1);
+    t->setTabsClosable(true);
+    // close button only on the selected tab (reference: Adw.TabBar shows it on the selected page)
+    for (int i = 0; i < t->count(); ++i)
+        if (auto *cb = t->tabButton(i, QTabBar::RightSide)) cb->setVisible(i == 1);
+    t->setFixedWidth(480);
+    auto *l = new QHBoxLayout; l->setContentsMargins(0, 0, 0, 0); l->addWidget(t, 0, Qt::AlignTop); l->addStretch();
+    return sect(l, 560, 71);
+}
+
+QToolButton *hbIcon(const char *themeName, const QString &fallback)
+{
+    auto *b = new QToolButton;
+    const QIcon ic = QIcon::fromTheme(themeName);
+    if (!ic.isNull()) b->setIcon(ic); else b->setText(fallback);
+    b->setProperty("adwaita-class", "flat");
+    return b;
 }
 
 QWidget *headerbar()
 {
     auto *hb = new QWidget;
     hb->setProperty("adwaita-class", "headerbar");
-    hb->setFixedHeight(47);
+    hb->setFixedSize(536, 47);
     auto *l = new QHBoxLayout(hb);
     l->setContentsMargins(6, 0, 6, 0);
-    l->addWidget(btn("Back", "flat"));
+    l->setSpacing(6);
+    l->addWidget(hbIcon("list-add-symbolic", "+"));
     l->addStretch();
-    auto *title = new QLabel("<b>Title</b>");
-    l->addWidget(title);
+    auto *tl = new QVBoxLayout; tl->setSpacing(0); tl->setContentsMargins(0, 0, 0, 0);
+    auto *title = new QLabel("<b>Title</b>"); title->setAlignment(Qt::AlignCenter);
+    auto *sub = new QLabel("Subtitle"); sub->setAlignment(Qt::AlignCenter);
+    QFont sf = sub->font(); sf.setPointSizeF(sf.pointSizeF() * 0.82); sub->setFont(sf);
+    QPalette sp = sub->palette(); QColor c = sp.color(QPalette::WindowText); c.setAlphaF(0.55); sp.setColor(QPalette::WindowText, c); sub->setPalette(sp);
+    tl->addWidget(title); tl->addWidget(sub);
+    l->addLayout(tl);
     l->addStretch();
-    auto *mb = new QToolButton; mb->setText("☰");
+    auto *mb = hbIcon("open-menu-symbolic", "☰");
     auto *m = new QMenu(mb); m->addAction("Item");
     mb->setMenu(m); mb->setPopupMode(QToolButton::InstantPopup);
-    mb->setProperty("adwaita-class", "flat");
     l->addWidget(mb);
-    auto *root = new QVBoxLayout;
-    root->addWidget(hb);
-    root->addStretch();
-    auto *p = new QWidget;
-    root->setContentsMargins(0, 0, 0, 0); root->setSpacing(0);
-    p->setLayout(root); p->setAutoFillBackground(true); p->setFixedSize(460, 140);
-    return p;
+    l->addWidget(hbIcon("window-close-symbolic", "✕"));  // ":close" decoration layout
+    auto *wl = new QHBoxLayout; wl->setContentsMargins(0, 0, 0, 0); wl->addWidget(hb, 0, Qt::AlignTop); wl->addStretch();
+    return sect(wl, 560, 72);
 }
 
-QWidget *menu()
+QMenu *makeMenu()
 {
     auto *m = new QMenu;
-    m->addAction("First item"); m->addAction("Second item");
+    auto *first = m->addAction("New Window"); m->addAction("Open…"); m->addAction("Save");
     m->addSeparator();
-    m->addAction("Third item"); m->addAction("Fourth item");
+    m->addAction("Preferences");
     m->ensurePolished();
+    m->setActiveAction(first);  // reference popover has the first item in hover state
     return m;
 }
+QWidget *menu() { return makeMenu(); }
 
 QWidget *boxedlist()
 {
-    auto *l = new QVBoxLayout;
     auto *list = new QWidget; list->setProperty("adwaita-class", "boxed-list");
+    list->setFixedWidth(536);
     auto *ll = new QVBoxLayout(list); ll->setContentsMargins(1, 1, 1, 1); ll->setSpacing(0);
     int idx = 0;
-    auto row = [&](QWidget *content) {
+    auto row = [&](QWidget *content, int h = 55) {
         auto *r = new QWidget; r->setProperty("adwaita-class", "boxed-row"); r->setProperty("adwaita-row-index", idx++);
         auto *rl = new QHBoxLayout(r); rl->setContentsMargins(12, 6, 12, 6);
-        rl->addWidget(content); r->setMinimumHeight(50); ll->addWidget(r);
+        rl->addWidget(content); r->setMinimumHeight(h); ll->addWidget(r);
         return rl;
     };
-    { auto *b = new QPushButton("Activate"); b->setProperty("adwaita-class", "flat");
-      auto *rl = row(new QLabel("Action Row")); rl->addStretch(); rl->addWidget(b); }
-    { auto *rl = row(new QLabel("Switch Row")); rl->addStretch(); rl->addWidget(sw(true, true)); }
-    { auto *rl = row(new QLabel("Entry Row")); auto *e = new QLineEdit("Text"); rl->addWidget(e, 1); }
-    { auto *c = new QComboBox; c->addItems({"One", "Two", "Three"});
-      auto *rl = row(new QLabel("Combo Row")); rl->addStretch(); rl->addWidget(c); }
-    l->addWidget(list);
-    return page(l, 460);
+    { auto *t = new QWidget; auto *tl = new QVBoxLayout(t); tl->setContentsMargins(0, 0, 0, 0); tl->setSpacing(0);
+      auto *sub = new QLabel("With a subtitle");
+      QFont sf = sub->font(); sf.setPointSizeF(sf.pointSizeF() * 0.9); sub->setFont(sf);
+      QPalette sp = sub->palette(); QColor c = sp.color(QPalette::WindowText); c.setAlphaF(0.55); sp.setColor(QPalette::WindowText, c); sub->setPalette(sp);
+      tl->addWidget(new QLabel("Action row")); tl->addWidget(sub);
+      row(t, 55); }
+    { auto *rl = row(new QLabel("Switch row")); rl->addStretch(); rl->addWidget(sw(true, true)); }
+    { auto *t = new QWidget; auto *tl = new QVBoxLayout(t); tl->setContentsMargins(0, 0, 0, 0); tl->setSpacing(0);
+      auto *e = new QLineEdit("Some text"); e->setFrame(false);
+      { QPalette ep = e->palette(); ep.setColor(QPalette::Base, Qt::transparent); e->setPalette(ep); }
+      auto *tt = new QLabel("Entry row");
+      QFont sf = tt->font(); sf.setPointSizeF(sf.pointSizeF() * 0.82); tt->setFont(sf);
+      tl->addWidget(tt); tl->addWidget(e);
+      row(t, 55); }
+    { auto *c = new QComboBox; c->addItems({"One", "Two", "Three"}); c->setProperty("adwaita-class", "flat");
+      auto *rl = row(new QLabel("Combo row")); rl->addStretch(); rl->addWidget(c); }
+    auto *l = new QHBoxLayout; l->setContentsMargins(0, 0, 0, 0); l->addWidget(list, 0, Qt::AlignTop); l->addStretch();
+    return sect(l, 560, 250);
 }
 
 class TooltipSample : public QWidget
 {
 public:
-    TooltipSample() { setFixedSize(220, 74); setAutoFillBackground(true); }
+    TooltipSample()
+    {
+        const QFontMetrics fm(font());
+        setFixedSize(fm.horizontalAdvance("A tooltip") + 22, fm.height() + 14);
+        setAutoFillBackground(true);
+    }
 protected:
     void paintEvent(QPaintEvent *) override
     {
         QPainter p(this);
-        QStyleOption o; o.initFrom(this); o.rect = QRect(24, 20, 140, 32);
+        QStyleOption o; o.initFrom(this); o.rect = rect();
         style()->drawPrimitive(QStyle::PE_PanelTipLabel, &o, &p, this);
         p.setPen(palette().color(QPalette::ToolTipText));
         p.drawText(o.rect, Qt::AlignCenter, "A tooltip");
@@ -250,22 +310,21 @@ QWidget *tooltip() { return new TooltipSample; }
 
 QWidget *progress()
 {
-    auto *l = new QVBoxLayout;
-    auto *p = new QProgressBar; p->setValue(60);
-    l->addWidget(p);
-    return page(l);
+    auto *p = new QProgressBar; p->setValue(60); p->setFixedWidth(300); p->setTextVisible(false);
+    return sect(hbox({p}), 560, 50);
 }
 
-QWidget *focusring()
+QWidget *focusringSection(bool entryFocused)
 {
-    auto *l = new QVBoxLayout;
-    auto *b = btn("Button"); b->setProperty("adwaita-focus-visible", true);
-    auto *e = new QLineEdit("Entry");
-    l->addWidget(b); l->addWidget(e);
-    auto *p = page(l, 320);
-    QTimer::singleShot(0, e, [e, b] { e->setFocus(); b->update(); });
+    auto *b = new QPushButton("Focused button");
+    auto *e = new QLineEdit("Focused entry");
+    auto *p = sect(hbox({b, e}), 560, 70);
+    if (entryFocused) QTimer::singleShot(0, e, [e] { e->setFocus(Qt::TabFocusReason); });
+    else { b->setProperty("adwaita-focus-visible", true); QTimer::singleShot(0, b, [b] { b->setFocus(Qt::TabFocusReason); }); }
     return p;
 }
+QWidget *focusring() { return focusringSection(false); }
+QWidget *focusringEntry() { return focusringSection(true); }
 
 QWidget *listview()
 {
@@ -362,12 +421,38 @@ QWidget *combopopup()
     return p;
 }
 
-struct Section { const char *name; std::function<QWidget *()> make; };
+// Post-show steps (run before the grab): wait for the style's animations, or put the pointer over the scroll bar.
+void waitMs(int ms)
+{
+    QEventLoop loop; QTimer::singleShot(ms, &loop, &QEventLoop::quit); loop.exec();
+}
+void prepScrollIdle(QWidget *) { waitMs(2500); }   // overlay indicator faded out
+void prepScrollThin(QWidget *) { g_scrollArea->verticalScrollBar()->setValue(30); waitMs(200); }  // just scrolled: thin indicator
+void prepScrollHover(QWidget *)
+{
+    // Reference: pointer over the scroll bar -> expanded indicator. No real pointer offscreen: send the enter event.
+    QScrollBar *sb = g_scrollArea->verticalScrollBar();
+    waitMs(100);
+    QEnterEvent ev(QPointF(4, 20), QPointF(4, 20), QPointF(4, 20));
+    QCoreApplication::sendEvent(sb, &ev);
+    waitMs(700);
+}
+
+struct Section {
+    const char *name;
+    std::function<QWidget *()> make;
+    std::function<void(QWidget *)> prep = {};
+    int crop = 0;  // >0: cut this many px off every side of the grab, <0: pad with window colour (popup shadow margin)
+};
 const Section kSections[] = {
     {"buttons", buttons}, {"entries", entries}, {"spinbutton", spinbutton}, {"dropdown", dropdown},
     {"switches", switches}, {"checks", checks}, {"radios", radios}, {"slider", slider},
-    {"scrollbar", scrollbar}, {"tabs", tabs}, {"headerbar", headerbar}, {"menu", menu},
-    {"boxedlist", boxedlist}, {"tooltip", tooltip}, {"progress", progress}, {"focusring", focusring},
+    {"scrollbar", scrollbar, prepScrollHover}, {"scrollbar-idle", scrollbar, prepScrollIdle},
+    {"scrollbar-thin", scrollbar, prepScrollThin},
+    {"tabs", tabs}, {"headerbar", headerbar}, {"menu", menu, {}, 12}, {"menu-shadow", menu, {}, -12},
+    {"boxedlist", boxedlist}, {"tooltip", tooltip}, {"progress", progress},
+    {"focusring", focusring}, {"focusring-entry", focusringEntry},
+    // Qt-only sections (no libadwaita reference)
     {"listview", listview}, {"treeview", treeview}, {"tableview", tableview}, {"groupbox", groupbox},
     {"toolbuttons", toolbuttons}, {"tabwidget", tabwidget},
 };
@@ -386,6 +471,14 @@ int main(int argc, char **argv)
     if (scale != "1") qputenv("QT_SCALE_FACTOR", scale.toUtf8());
 
     QApplication app(argc, argv);
+    // Reference font: Adwaita Sans 11 (not installed on the host; load from ADWAITA_GALLERY_FONT_DIR, read-only).
+    if (const QByteArray fd = qgetenv("ADWAITA_GALLERY_FONT_DIR"); !fd.isEmpty()) {
+        const QStringList files = QDir(QString::fromLocal8Bit(fd)).entryList({"*.ttf", "*.otf"}, QDir::Files);
+        for (const QString &f : files) QFontDatabase::addApplicationFont(QDir(QString::fromLocal8Bit(fd)).filePath(f));
+        const QStringList fam = QFontDatabase::families();
+        if (fam.contains("Adwaita Sans")) QApplication::setFont(QFont("Adwaita Sans", 11));
+        if (fam.contains("Adwaita Mono")) QApplication::setFont(QFont("Adwaita Mono", 11), "QPlainTextEdit");
+    }
     QString styleName = "Libadwaita";
     for (int i = 1; i + 1 < argc; ++i)
         if (QByteArray(argv[i]) == "--style") styleName = argv[i + 1];
@@ -399,14 +492,25 @@ int main(int argc, char **argv)
             w->show();
             app.processEvents();
             app.processEvents();
+            if (s.prep) s.prep(w);
             const QString path = QString("%1/%2@%3x.png").arg(shotDir, s.name, scale);
             // Translucent popups (menu) grab with an alpha channel; flatten onto the window colour so viewers
             // that drop alpha (contact sheets) do not show a black rectangle around the rounded panel.
-            const QPixmap px = w->grab();
-            QImage img(px.size(), QImage::Format_RGB32);
-            img.setDevicePixelRatio(px.devicePixelRatio());
+            const qreal dpr = w->devicePixelRatioF();
+            QImage img((w->size() * dpr).expandedTo(QSize(1, 1)), QImage::Format_RGB32);
+            img.setDevicePixelRatio(dpr);
             img.fill(QApplication::palette().color(QPalette::Window));
-            { QPainter ip(&img); ip.drawPixmap(0, 0, px); }
+            w->render(&img);  // render onto an opaque base: translucent parts (scroll trough, popup shadow) blend like on screen
+            if (s.crop > 0) {
+                const qreal r = img.devicePixelRatio(); const int m = qRound(s.crop * r);
+                QImage c = img.copy(m, m, img.width() - 2 * m, img.height() - 2 * m); c.setDevicePixelRatio(r); img = c;
+            } else if (s.crop < 0) {
+                const qreal r = img.devicePixelRatio(); const int m = qRound(-s.crop * r);
+                QImage c(img.width() + 2 * m, img.height() + 2 * m, QImage::Format_RGB32);
+                c.fill(QApplication::palette().color(QPalette::Window));
+                { QPainter cp(&c); cp.drawImage(m, m, img); }
+                c.setDevicePixelRatio(r); img = c;
+            }
             if (!img.save(path)) qWarning("failed to write %s", qPrintable(path));
             delete w;
         }
@@ -417,7 +521,7 @@ int main(int argc, char **argv)
     auto *all = new QWidget;
     auto *v = new QVBoxLayout(all);
     for (const Section &s : kSections) {
-        if (QByteArray(s.name) == "menu" || QByteArray(s.name) == "tooltip") continue;
+        if (QByteArray(s.name) == "menu" || QByteArray(s.name) == "menu-shadow" || QByteArray(s.name) == "tooltip") continue;
         v->addWidget(new QLabel(QString("<b>%1</b>").arg(s.name)));
         v->addWidget(s.make());
     }
