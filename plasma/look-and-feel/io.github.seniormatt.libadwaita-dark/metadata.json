@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "130131083+SeniorMatt@users.noreply.github.com",
+                "Name": "Senior Matthew"
+            }
+        ],
+        "Category": "",
+        "Description": "GNOME libadwaita look (dark): colours, widget style, window decoration, icons, Plasma style and splash",
+        "Id": "io.github.seniormatt.libadwaita-dark",
+        "License": "GPL-2.0+",
+        "Name": "Libadwaita Dark",
+        "Website": "https://github.com/SeniorMatt/qt-libadwaita"
+    }
+}
