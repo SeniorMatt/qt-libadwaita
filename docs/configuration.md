@@ -16,6 +16,7 @@ xdg-desktop-portal. On Plasma, dark and high contrast follow the KDE colour sche
 | `ADWAITA_SPACING` | `compact normal comfortable` or 0.5-3 | see below |
 | `ADWAITA_FONT_SIZE` | points, `0` = app font | see below |
 | `ADWAITA_KEEP_APP_PALETTE` / `ADWAITA_KEEP_APP_FONT` | `1` | keep the app's own palette / font |
+| `ADWAITA_SYNTHETIC_BOLD` | `1` | keep Qt's synthetic bold. By default the style sets `QT_NO_SYNTHESIZED_BOLD=1`, because Qt otherwise emboldens the Bold instance of the variable Adwaita Sans a second time (bold text ~33% heavier than in GTK) |
 
 ## Spacing and font size
 Create `~/.config/qt-libadwaita.conf` (restart the apps after a change):

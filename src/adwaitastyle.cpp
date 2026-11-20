@@ -20,6 +20,12 @@
 
 AdwaitaStyle::AdwaitaStyle()
 {
+    // Adwaita Sans is a variable font. Qt reads the weight of its default instance (400) even for the Bold instance
+    // and then emboldens the real bold glyphs again: bold labels came out ~33% heavier than GTK draws them. Turning
+    // off Qt's synthetic bold makes them match Pango. It only affects font engines created after this point, so set
+    // it as early as the style exists; QT_NO_SYNTHESIZED_BOLD set by the user is kept.
+    if (!qEnvironmentVariableIsSet("QT_NO_SYNTHESIZED_BOLD") && !qEnvironmentVariableIsSet("ADWAITA_SYNTHETIC_BOLD"))
+        qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
     reload();
     connect(AdwaitaSettings::instance(), &AdwaitaSettings::changed, this, &AdwaitaStyle::settingsChanged);
 }
