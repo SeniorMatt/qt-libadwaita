@@ -465,7 +465,7 @@ QRect AdwaitaStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex 
         case SC_ComboBoxFrame: return r;
         case SC_ComboBoxArrow: return QRect(r.right() - arrowW + 1, r.top(), arrowW, r.height());
         case SC_ComboBoxEditField: return QRect(r.left() + lp, r.top() + 1, r.width() - arrowW - lp - 6, r.height() - 2);
-        case SC_ComboBoxListBoxPopup: return r;
+        case SC_ComboBoxListBoxPopup: return r.adjusted(0, 0, 0, 4);  // popover: a small gap below the field
         default: break;
         }
     }

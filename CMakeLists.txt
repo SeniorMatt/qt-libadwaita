@@ -59,6 +59,7 @@ add_library(adwaita MODULE
     src/adwaitastyle_menus.cpp
     src/adwaitastyle_tabs.cpp
     src/adwaitastyle_views.cpp
+    src/adwaitastyle_widgets.cpp
     src/adwaitastyleplugin.cpp src/adwaitastyleplugin.h
     data/kde-colors/kdecolors.qrc
     ${TOKENS_DATA})
