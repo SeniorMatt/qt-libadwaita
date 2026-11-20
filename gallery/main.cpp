@@ -4,6 +4,7 @@
 // With --shot every section is grabbed to DIR/<section>@<scale>x.png and the app exits.
 // Scheme, accent and contrast come from ADWAITA_COLOR_SCHEME / ADWAITA_ACCENT / ADWAITA_HIGH_CONTRAST.
 #include <QApplication>
+#include <cstdio>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
@@ -497,7 +498,7 @@ int main(int argc, char **argv)
                  qPrintable(QApplication::style()->objectName()), qPrintable(QStyleFactory::keys().join(", ")));
         if (!shotDir.isEmpty()) return 3;
     } else if (!shotDir.isEmpty()) {
-        qInfo("style loaded: %s", qPrintable(styleName));
+        std::fprintf(stderr, "style loaded: %s\n", qPrintable(styleName));
     }
 
     if (!shotDir.isEmpty()) {
