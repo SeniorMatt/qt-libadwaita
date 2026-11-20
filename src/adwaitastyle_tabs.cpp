@@ -7,6 +7,7 @@
 #include <QDockWidget>
 #include <QFontMetrics>
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyleOptionDockWidget>
 #include <QStyleOptionFrame>
 #include <QStyleOptionGroupBox>
@@ -96,7 +97,29 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
     case PE_Widget: {
         const QString c = adwClass(w);
         if (c == "headerbar") {
-            p->fillRect(opt->rect, barBg(t));
+            // libadwaita's header bar is square; the 15 px window corners (window_radius) clip it when it is the top
+            // of a window. Qt only needs that for a frameless window drawing its own title bar (client-side
+            // decoration); under a window manager title bar, or embedded in content, it stays square.
+            const QWidget *win = w ? w->window() : nullptr;
+            const bool csdTop = win && win != w && (win->windowFlags() & Qt::FramelessWindowHint)
+                             && w->mapTo(win, QPoint(0, 0)).y() == 0;
+            const bool underDecoration = !csdTop;
+            const QRectF r(opt->rect);
+            p->save();
+            p->setRenderHint(QPainter::Antialiasing);
+            p->setPen(Qt::NoPen);
+            p->setBrush(barBg(t));
+            if (underDecoration) {
+                p->drawRect(r);
+            } else {
+                const qreal rad = qMin<qreal>(15, r.height() / 2);
+                QPainterPath path;
+                path.addRoundedRect(r, rad, rad);
+                path.addRect(r.adjusted(0, rad, 0, 0));  // square bottom corners
+                path.setFillRule(Qt::WindingFill);
+                p->drawPath(path.simplified());
+            }
+            p->restore();
             p->fillRect(QRect(opt->rect.left(), opt->rect.bottom(), opt->rect.width(), 1), barLine(t));
             return true;
         }
