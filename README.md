@@ -83,6 +83,44 @@ KDE apps also need the matching colour scheme, because they paint their content 
 mkdir -p ~/.local/share/color-schemes && cp kde-colors/*.colors ~/.local/share/color-schemes/
 ```
 
+## Fonts
+
+GNOME uses **Adwaita Sans** for the interface and **Adwaita Mono** for code. `install.sh` installs both into
+`~/.local/share/fonts` (Flatpak apps see them there too); distros also ship them as `adwaita-fonts` /
+`fonts-adwaita`.
+
+Qt widget apps (Dolphin, Kate, qBittorrent...) get Adwaita Sans from the style itself, at the size set by
+`font-size` (default 10, see [Configure](#configure)). Everything else (Plasma, QML apps such as Discover and System
+Settings, GTK apps) uses the desktop font settings, so set those to match.
+
+**KDE Plasma: System Settings > Text & Fonts > Fonts** (called just *Fonts* in older Plasma), press *Adjust All
+Fonts...* or set each line:
+
+| Plasma setting | Font | Size (style default `font-size=10`) | Size for exact GNOME (`font-size=11`) |
+|---|---|---|---|
+| General | Adwaita Sans, Regular | 10 | 11 |
+| Fixed width | Adwaita Mono, Regular | 10 | 11 |
+| Small | Adwaita Sans, Regular | 8 | 9 |
+| Toolbar | Adwaita Sans, Regular | 10 | 11 |
+| Menu | Adwaita Sans, Regular | 10 | 11 |
+| Window title | Adwaita Sans, **Bold** | 10 | 11 |
+
+Rendering, on the same page, as GNOME does it:
+
+| Setting | Value |
+|---|---|
+| Anti-Aliasing | Enabled |
+| Sub-pixel rendering | None (GNOME uses grayscale) |
+| Hinting | Slight |
+| Force font DPI | Off (scale the display instead) |
+
+Plasma passes these fonts on to GTK apps automatically. Keep *General* and the style's `font-size` the same, or
+widget apps and QML apps will show different text sizes side by side.
+
+**GNOME:** nothing to do. GNOME already defaults to Adwaita Sans 11 and Adwaita Mono 11; for an exact match set
+`font-size=11` in `~/.config/qt-libadwaita.conf`. To keep each app's own font instead, set
+`ADWAITA_KEEP_APP_FONT=1` (or `font-size=0`).
+
 ## Configure
 
 Everything follows the desktop by default. To override, use `~/.config/qt-libadwaita.conf`:

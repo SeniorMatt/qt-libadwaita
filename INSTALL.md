@@ -32,7 +32,8 @@ Dark/light, accent colour and high contrast follow the GNOME settings (xdg-deskt
 ## Window decorations and font
 - Wayland title bars: install [QAdwaitaDecorations](https://github.com/FedoraQt/QAdwaitaDecorations) and run with
   `QT_WAYLAND_DECORATION=adwaita`.
-- Font: the current GNOME default is Adwaita Sans (package `adwaita-fonts`); select it in your desktop font settings.
+- Font: the current GNOME default is Adwaita Sans (package `adwaita-fonts`). Which desktop font to set to what:
+  see the Fonts section of [README.md](README.md#fonts).
 
 ## App-facing API (dynamic properties, mirroring GTK style classes)
 | Property | Value | Effect |
