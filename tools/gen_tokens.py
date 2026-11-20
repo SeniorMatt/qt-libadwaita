@@ -35,6 +35,23 @@ for vname, v in d["schemes"].items():
     for k, key in (("button", "radius"), ("card", "radius_card"), ("popover", "radius_popover"),
                    ("check", "radius_check"), ("switch", "radius_switch")):
         rows.append((vname, key, str(d["radii"][k])))
+W = d["widgets"]
+for vname in d["schemes"]:
+    hc = vname.startswith("hc-")
+    sb, sc, pb, sp = W["scrollbar"], W["scale"], W["progressbar"], W["spinbutton"]
+    sop = sb["slider_bg"]["hc"] if hc else [sb["slider_bg"]["normal"], sb["slider_bg"]["hover"], sb["slider_bg"]["active"]]
+    if not hc: sop = [0.20] + sop[1:]  # JSON "normal" is a CSS string
+    for k, v in (("scrollbar_slider_min", sb["slider_min_length"]), ("scrollbar_slider_expanded", sb["slider_width_expanded"]),
+                 ("scrollbar_slider_idle", sb["slider_width_overlay_idle"]),
+                 ("scrollbar_margin_expanded", sb["trough_margin"]["expanded_cross_axis"]),
+                 ("scrollbar_margin_idle", sb["trough_margin"]["overlay_idle_cross_axis"]),
+                 ("scrollbar_op_normal", sop[0]), ("scrollbar_op_hover", sop[1]), ("scrollbar_op_active", sop[2]),
+                 ("scrollbar_trough_op", 0.25 if hc else 0.10),
+                 ("scale_trough", sc["trough_thickness"]), ("scale_slider", sc["slider"]), ("scale_pad", sc["padding"]),
+                 ("scale_trough_op", 0.30 if hc else 0.15), ("scale_trough_hover_op", 0.40 if hc else 0.20),
+                 ("progress_thickness", pb["thickness"]), ("progress_min_length", pb["min_length_h"]),
+                 ("spin_button_w", sp["button_min"][0])):
+        rows.append((vname, k, str(v)))
 acc = d["accent"]["palette"]
 std = d["accent"]["standalone_resolved_hex"]
 with open(out, "w") as f:

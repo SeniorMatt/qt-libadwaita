@@ -22,6 +22,12 @@
 #include <QStyle>
 #include <QStyleOption>
 #include <QPainter>
+#include <QGroupBox>
+#include <QListWidget>
+#include <QSplitter>
+#include <QTableWidget>
+#include <QToolBar>
+#include <QTreeWidget>
 #include <QTabBar>
 #include <QTabWidget>
 #include <QTimer>
@@ -261,12 +267,109 @@ QWidget *focusring()
     return p;
 }
 
+QWidget *listview()
+{
+    auto *l = new QVBoxLayout;
+    auto *v = new QListWidget;
+    for (int i = 1; i <= 6; ++i) v->addItem(QString("List item %1").arg(i));
+    v->item(1)->setSelected(true); v->setCurrentRow(1);
+    v->setFixedHeight(200);
+    l->addWidget(v);
+    return page(l, 360);
+}
+
+QWidget *treeview()
+{
+    auto *l = new QVBoxLayout;
+    auto *t = new QTreeWidget; t->setColumnCount(2); t->setHeaderLabels({"Name", "Size"});
+    for (int i = 0; i < 3; ++i) {
+        auto *it = new QTreeWidgetItem(t, {QString("Folder %1").arg(i + 1), "--"});
+        for (int j = 0; j < 2; ++j) new QTreeWidgetItem(it, {QString("File %1.%2").arg(i + 1).arg(j + 1), "12 kB"});
+        if (i < 2) it->setExpanded(true);
+    }
+    t->setCurrentItem(t->topLevelItem(0)->child(1));
+    t->setSortingEnabled(true);
+    t->setFixedHeight(220);
+    l->addWidget(t);
+    return page(l, 360);
+}
+
+QWidget *tableview()
+{
+    auto *l = new QVBoxLayout;
+    auto *t = new QTableWidget(5, 3);
+    t->setHorizontalHeaderLabels({"Name", "Type", "Size"});
+    for (int r = 0; r < 5; ++r) for (int c = 0; c < 3; ++c) t->setItem(r, c, new QTableWidgetItem(QString("Cell %1,%2").arg(r).arg(c)));
+    t->setCurrentCell(2, 1);
+    t->setFixedHeight(200);
+    l->addWidget(t);
+    return page(l, 420);
+}
+
+QWidget *groupbox()
+{
+    auto *l = new QVBoxLayout;
+    auto *g = new QGroupBox("Group title");
+    auto *gl = new QVBoxLayout(g); gl->addWidget(new QCheckBox("Option one")); gl->addWidget(new QCheckBox("Option two"));
+    l->addWidget(g);
+    auto *g2 = new QGroupBox("Checkable"); g2->setCheckable(true);
+    auto *g2l = new QVBoxLayout(g2); g2l->addWidget(new QLabel("Contents"));
+    l->addWidget(g2);
+    auto *line = new QFrame; line->setFrameShape(QFrame::HLine); l->addWidget(line);
+    auto *fr = new QFrame; fr->setFrameShape(QFrame::StyledPanel); auto *fl = new QVBoxLayout(fr); fl->addWidget(new QLabel("Framed"));
+    l->addWidget(fr);
+    return page(l, 360);
+}
+
+QWidget *toolbuttons()
+{
+    auto *l = new QVBoxLayout;
+    auto *tb = new QToolBar; tb->setIconSize(QSize(16, 16));
+    tb->addAction(QApplication::style()->standardIcon(QStyle::SP_ArrowBack), "Back");
+    tb->addAction(QApplication::style()->standardIcon(QStyle::SP_ArrowForward), "Forward");
+    tb->addSeparator();
+    auto *a = tb->addAction(QApplication::style()->standardIcon(QStyle::SP_FileIcon), "Checked"); a->setCheckable(true); a->setChecked(true);
+    tb->addAction("Text");
+    l->addWidget(tb);
+    auto *row = new QHBoxLayout;
+    auto *tbt = new QToolButton; tbt->setText("Menu"); auto *m = new QMenu(tbt); m->addAction("One"); tbt->setMenu(m);
+    tbt->setPopupMode(QToolButton::MenuButtonPopup); row->addWidget(tbt);
+    auto *t2 = new QToolButton; t2->setText("Raised"); t2->setProperty("adwaita-class", "raised"); row->addWidget(t2);
+    auto *t3 = new QToolButton; t3->setText("Off"); t3->setEnabled(false); row->addWidget(t3);
+    row->addStretch();
+    l->addLayout(row);
+    auto *sp = new QSplitter; sp->addWidget(new QLabel("Left")); sp->addWidget(new QLabel("Right")); l->addWidget(sp);
+    return page(l, 420);
+}
+
+QWidget *tabwidget()
+{
+    auto *l = new QVBoxLayout;
+    auto *t = new QTabWidget; t->setTabsClosable(true);
+    t->addTab(new QLabel("Page one"), "First"); t->addTab(new QLabel("Page two"), "Second"); t->addTab(new QLabel("Page three"), "Third");
+    t->setFixedHeight(140);
+    l->addWidget(t);
+    return page(l, 420);
+}
+
+QWidget *combopopup()
+{
+    auto *c = new QComboBox; c->addItems({"First", "Second", "Third"});
+    c->setMinimumWidth(180);
+    auto *p = new QWidget; auto *l = new QVBoxLayout(p); l->addWidget(c);
+    p->setFixedSize(300, 220); p->setAutoFillBackground(true);
+    QTimer::singleShot(0, c, [c] { c->showPopup(); });
+    return p;
+}
+
 struct Section { const char *name; std::function<QWidget *()> make; };
 const Section kSections[] = {
     {"buttons", buttons}, {"entries", entries}, {"spinbutton", spinbutton}, {"dropdown", dropdown},
     {"switches", switches}, {"checks", checks}, {"radios", radios}, {"slider", slider},
     {"scrollbar", scrollbar}, {"tabs", tabs}, {"headerbar", headerbar}, {"menu", menu},
     {"boxedlist", boxedlist}, {"tooltip", tooltip}, {"progress", progress}, {"focusring", focusring},
+    {"listview", listview}, {"treeview", treeview}, {"tableview", tableview}, {"groupbox", groupbox},
+    {"toolbuttons", toolbuttons}, {"tabwidget", tabwidget},
 };
 
 }  // namespace

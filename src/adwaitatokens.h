@@ -16,7 +16,11 @@
 #define ADW_METRIC_TOKENS(X) \
     X(radius) X(radius_card) X(button_min_height) X(button_pad_x) X(entry_pad_x) X(entry_min_height) \
     X(check_size) X(switch_width) X(switch_height) X(border_width) X(focus_ring_width) \
-    X(disabled_opacity) X(spacing) X(border_opacity) X(focus_ring_alpha) X(radius_popover) X(radius_check) X(radius_switch)
+    X(disabled_opacity) X(spacing) X(border_opacity) X(focus_ring_alpha) X(radius_popover) X(radius_check) X(radius_switch) \
+    X(scrollbar_slider_min) X(scrollbar_slider_expanded) X(scrollbar_slider_idle) X(scrollbar_margin_expanded) X(scrollbar_margin_idle) \
+    X(scrollbar_op_normal) X(scrollbar_op_hover) X(scrollbar_op_active) X(scrollbar_trough_op) \
+    X(scale_trough) X(scale_slider) X(scale_pad) X(scale_trough_op) X(scale_trough_hover_op) \
+    X(progress_thickness) X(progress_min_length) X(spin_button_w)
 
 struct AdwaitaTokens {
 #define X(n) QColor n;
