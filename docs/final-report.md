@@ -15,7 +15,8 @@ libadwaita 1.10.0, GNOME 51.1 (checked at the start; no newer release during the
   Default font size 10 pt (owner's choice: Qt/KDE layouts clip text at libadwaita's 11 pt).
 - KDE colour schemes (kde-colors/: Libadwaita, Libadwaita Dark, High Contrast, High Contrast Dark), generated from
   the tokens, so KDE apps paint sidebars and views with the same colours.
-- Flatpak extension org.kde.KStyle.Libadwaita (packaging/flatpak/) for apps on org.kde.Platform 6.10 / 6.11.
+- Flatpak apps: install.sh adds a user Flatpak override (plugin path read-only); no separate extension package.
+- On Plasma, dark and high contrast follow the KDE colour scheme (kdeglobals), live; the portal gives the accent.
 - Gallery app, reference shots from real libadwaita, and a comparison tool (tools/compare/run.sh).
 
 ## Install and enable
