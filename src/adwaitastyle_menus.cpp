@@ -375,11 +375,12 @@ bool AdwaitaStyle::menus_drawControl(ControlElement ce, const QStyleOption *opt,
             if (!mi->icon.isNull()) {
                 const int is = qMin(16, mi->maxIconWidth);
                 const QIcon::Mode mode = enabled ? QIcon::Normal : QIcon::Disabled;
+                const QIcon icon = symbolicIcon(mi->icon, t.popover_fg);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                const QPixmap ipm = mi->icon.pixmap(QSize(is, is), p->device()->devicePixelRatio(), mode);
+                const QPixmap ipm = icon.pixmap(QSize(is, is), p->device()->devicePixelRatio(), mode);
 #else
                 const qreal idpr = p->device()->devicePixelRatioF();
-                QPixmap ipm = mi->icon.pixmap(QSize(is, is) * idpr, mode);
+                QPixmap ipm = icon.pixmap(QSize(is, is) * idpr, mode);
                 ipm.setDevicePixelRatio(idpr);
 #endif
                 p->drawPixmap(QRect(x, r.center().y() - is / 2 + 1, is, is), ipm);

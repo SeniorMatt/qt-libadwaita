@@ -14,6 +14,8 @@
 #include <QLineEdit>
 #include <QPainter>
 #include <QPainterPath>
+#include <QIconEngine>
+#include <QPixmapCache>
 #include <QPointer>
 #include <QStyleOption>
 #include <QWidget>
@@ -190,8 +192,12 @@ QPalette AdwaitaStyle::standardPalette() const
     p.setColor(QPalette::Button, opaque(t.button_bg, t.window_bg));
     p.setColor(QPalette::ButtonText, fg);
     p.setColor(QPalette::BrightText, Qt::white);
-    p.setColor(QPalette::Highlight, t.accent_bg);
-    p.setColor(QPalette::HighlightedText, t.accent_fg);
+    // Selections are a translucent accent tint (list rows 25 %, text 30 %) and libadwaita keeps the view foreground
+    // on them, so Highlight is the tint flattened onto the view and HighlightedText stays the normal text colour
+    // (custom delegates and text selections that paint HighlightedText on Highlight stay readable).
+    QColor sel = t.accent_bg; sel.setAlphaF(0.30);
+    p.setColor(QPalette::Highlight, opaque(sel, t.view_bg));
+    p.setColor(QPalette::HighlightedText, vfg);
     p.setColor(QPalette::ToolTipBase, opaque(t.tooltip_bg, t.window_bg));
     p.setColor(QPalette::ToolTipText, t.tooltip_fg);
     p.setColor(QPalette::Link, t.accent_color);
@@ -207,7 +213,7 @@ QPalette AdwaitaStyle::standardPalette() const
     p.setColor(QPalette::Disabled, QPalette::WindowText, dis(fg, t.window_bg));
     p.setColor(QPalette::Disabled, QPalette::ButtonText, dis(fg, t.window_bg));
     p.setColor(QPalette::Disabled, QPalette::Text, dis(vfg, t.view_bg));
-    p.setColor(QPalette::Disabled, QPalette::HighlightedText, dis(t.accent_fg, t.accent_bg));
+    p.setColor(QPalette::Disabled, QPalette::HighlightedText, dis(vfg, t.view_bg));
     return p;
 }
 
@@ -299,6 +305,64 @@ void AdwaitaStyle::drawFocusRing(QPainter *p, const QRectF &r, qreal radius) con
     p->setBrush(Qt::NoBrush);
     p->drawRoundedRect(r.adjusted(w / 2, w / 2, -w / 2, -w / 2), radius - w / 2, radius - w / 2);
     p->restore();
+}
+
+// ---- symbolic icons ---------------------------------------------------------------------------------------
+
+namespace {
+// Wraps a "*-symbolic" icon: the source pixmap is only an alpha mask, painted in one colour (disabled: x opacity).
+class SymbolicEngine : public QIconEngine
+{
+public:
+    SymbolicEngine(const QIcon &src, const QColor &fg, qreal disabledOpacity) : m_src(src), m_fg(fg), m_dis(disabledOpacity) {}
+    QIconEngine *clone() const override { return new SymbolicEngine(m_src, m_fg, m_dis); }
+    QString key() const override { return QStringLiteral("adwaita-symbolic"); }
+    QSize actualSize(const QSize &size, QIcon::Mode mode, QIcon::State state) override { return m_src.actualSize(size, mode, state); }
+    // constness of these two differs between Qt 5.15 / 6.x releases: declare both forms, whichever matches overrides
+    QList<QSize> availableSizes(QIcon::Mode mode, QIcon::State state) const { return m_src.availableSizes(mode, state); }
+    QList<QSize> availableSizes(QIcon::Mode mode, QIcon::State state) { return m_src.availableSizes(mode, state); }
+    QString iconName() const { return m_src.name(); }
+    QString iconName() { return m_src.name(); }
+    QPixmap pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state) override { return scaledPixmap(size, mode, state, 1.0); }
+    QPixmap scaledPixmap(const QSize &size, QIcon::Mode mode, QIcon::State state, qreal scale) override
+    {
+        QColor c = m_fg;
+        if (mode == QIcon::Disabled) c.setAlphaF(c.alphaF() * m_dis);
+        const QString k = QStringLiteral("adwsym-%1-%2-%3x%4-%5-%6").arg(m_src.cacheKey()).arg(c.rgba(), 0, 16).arg(size.width())
+                              .arg(size.height()).arg(scale).arg(int(state));
+        QPixmap out;
+        if (QPixmapCache::find(k, &out)) return out;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QPixmap pm = m_src.pixmap(size, scale, QIcon::Normal, state);
+#else
+        QPixmap pm = m_src.pixmap(size * scale, QIcon::Normal, state);
+        pm.setDevicePixelRatio(scale);
+#endif
+        if (pm.isNull()) return pm;
+        QPainter ip(&pm);  // keep the alpha of the mask, replace the colour
+        ip.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        ip.fillRect(pm.rect(), c);
+        ip.end();
+        QPixmapCache::insert(k, pm);
+        return pm;
+    }
+    void paint(QPainter *painter, const QRect &rect, QIcon::Mode mode, QIcon::State state) override
+    {
+        const qreal dpr = painter->device()->devicePixelRatioF();
+        QPixmap pm = scaledPixmap(rect.size(), mode, state, dpr);
+        painter->drawPixmap(rect.topLeft(), pm);
+    }
+private:
+    QIcon m_src;
+    QColor m_fg;
+    qreal m_dis;
+};
+}  // namespace
+
+QIcon AdwaitaStyle::symbolicIcon(const QIcon &icon, const QColor &fg) const
+{
+    if (icon.isNull() || !icon.name().endsWith(QLatin1String("-symbolic"))) return icon;
+    return QIcon(new SymbolicEngine(icon, fg, m_tokens.disabled_opacity));
 }
 
 // ---- dispatch -------------------------------------------------------------------------------------------

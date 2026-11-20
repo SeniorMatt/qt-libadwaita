@@ -239,7 +239,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
             const int total = tw + (hasIcon ? isz + 6 : 0);
             int x = tr.center().x() - total / 2 + (total % 2 ? 0 : 0);
             if (hasIcon) {
-                tab->icon.paint(p, QRect(x, tr.center().y() - isz / 2 + 1, isz, isz), Qt::AlignCenter,
+                symbolicIcon(tab->icon, t.window_fg).paint(p, QRect(x, tr.center().y() - isz / 2 + 1, isz, isz), Qt::AlignCenter,
                                 (tab->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled);
                 x += isz + 6;
             }
@@ -251,6 +251,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         QStyleOptionTab o = *tab;
         o.palette.setColor(QPalette::WindowText, withDisabled(t.window_fg, opt));
         o.palette.setColor(QPalette::ButtonText, withDisabled(t.window_fg, opt));
+        if (!o.icon.isNull()) o.icon = symbolicIcon(o.icon, t.window_fg);
         o.state &= ~State_HasFocus;  // never the dotted focus rect
         QCommonStyle::drawControl(CE_TabBarTabLabel, &o, p, w);
         return true;
@@ -365,6 +366,7 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         else if (k == Destructive) lo.palette.setColor(QPalette::ButtonText, withDisabled(t.destructive_fg, opt));
         else lo.palette.setColor(QPalette::ButtonText, withDisabled(t.window_fg, opt));
         lo.palette.setColor(QPalette::WindowText, lo.palette.color(QPalette::ButtonText));
+        if (!lo.icon.isNull()) lo.icon = symbolicIcon(lo.icon, k == Suggested ? t.accent_fg : k == Destructive ? t.destructive_fg : t.window_fg);
         p->save();
         { QFont bf = p->font(); bf.setBold(true); p->setFont(bf); lo.font.setBold(true); }  // button label weight 700
         QCommonStyle::drawControl(CE_ToolButtonLabel, &lo, p, w);

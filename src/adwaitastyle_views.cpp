@@ -169,6 +169,7 @@ bool AdwaitaStyle::views_drawControl(ControlElement ce, const QStyleOption *opt,
         const bool combo = inComboPopup(w);
         o.state &= ~(State_Selected | State_MouseOver);
         o.backgroundBrush = Qt::NoBrush;
+        if (!o.icon.isNull()) o.icon = symbolicIcon(o.icon, combo ? t.popover_fg : t.view_fg);
         const QPalette::ColorGroup g = (o.state & State_Enabled) ? QPalette::Normal : QPalette::Disabled;
         o.palette.setColor(g, QPalette::Text, combo ? t.popover_fg : t.view_fg);
         if (combo && (v->state & State_Selected)) o.state |= State_Selected;  // keep the combo's current-item look

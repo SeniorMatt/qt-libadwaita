@@ -36,6 +36,8 @@ bool AdwaitaStyle::drawButtonLabel(const QStyleOption *opt, QPainter *p, const Q
     QStyleOptionButton b = *qstyleoption_cast<const QStyleOptionButton *>(opt);
     if (k == Suggested) b.palette.setColor(QPalette::ButtonText, withDisabled(m_tokens.accent_fg, opt));
     else if (k == Destructive) b.palette.setColor(QPalette::ButtonText, withDisabled(m_tokens.destructive_color, opt));
+    if (!b.icon.isNull()) b.icon = symbolicIcon(b.icon, k == Suggested ? m_tokens.accent_fg : k == Destructive ? m_tokens.destructive_color
+                                                      : b.palette.color(QPalette::Normal, QPalette::ButtonText));
     p->save();
     QFont bf = p->font(); bf.setBold(true); bf.setStyleStrategy(QFont::NoSubpixelAntialias); p->setFont(bf);  // libadwaita button label weight 700
     b.fontMetrics = QFontMetrics(bf);
@@ -83,12 +85,13 @@ bool AdwaitaStyle::drawComboLabel(const QStyleOption *opt, QPainter *p, const QW
     p->save();
     QFont bf = p->font(); bf.setBold(true); bf.setStyleStrategy(QFont::NoSubpixelAntialias); p->setFont(bf);
     if (!cb->currentIcon.isNull()) {
+        const QIcon icon = symbolicIcon(cb->currentIcon, m_tokens.window_fg);
         const QIcon::Mode im = (cb->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled;
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        const QPixmap pm = cb->currentIcon.pixmap(cb->iconSize, p->device()->devicePixelRatio(), im);
+        const QPixmap pm = icon.pixmap(cb->iconSize, p->device()->devicePixelRatio(), im);
 #else
         const qreal dpr = p->device()->devicePixelRatioF();
-        QPixmap pm = cb->currentIcon.pixmap(cb->iconSize * dpr, im);
+        QPixmap pm = icon.pixmap(cb->iconSize * dpr, im);
         pm.setDevicePixelRatio(dpr);
 #endif
         p->drawPixmap(QRect(r.left(), r.top() + (r.height() - cb->iconSize.height()) / 2, cb->iconSize.width(), cb->iconSize.height()), pm);

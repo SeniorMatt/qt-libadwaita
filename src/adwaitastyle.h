@@ -2,6 +2,7 @@
 #pragma once
 #include "adwaitatokens.h"
 #include <QCommonStyle>
+#include <QIcon>
 #include <QImage>
 #include <QPainter>
 
@@ -65,6 +66,8 @@ public:
     QColor withDisabled(const QColor &c, const QStyleOption *opt) const;
     void drawFocusRing(QPainter *p, const QRectF &r, qreal radius) const;  // ring drawn on r's outline
     QColor buttonFill(ButtonKind k, const QStyleOption *opt) const;
+    // *-symbolic icons are monochrome masks: GTK paints them in the foreground colour. Returns icon unchanged otherwise.
+    QIcon symbolicIcon(const QIcon &icon, const QColor &fg) const;
 
     // per widget family (adwaitastyle_*.cpp); return true if handled
     bool drawButtonBevel(const QStyleOption *opt, QPainter *p, const QWidget *w) const;
