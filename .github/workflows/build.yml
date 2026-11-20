@@ -42,8 +42,11 @@ jobs:
         run: |
           mkdir -p stage6/styles
           cp build/qtlibadwaitastyle.so stage6/styles/
+          rc=0
           QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/stage6 QT_STYLE_OVERRIDE=Libadwaita \
-            build/adwaita-gallery --shot /tmp/shots --scale 1 2>&1 | tee /tmp/gallery.log
+            build/adwaita-gallery --shot /tmp/shots --scale 1 >/tmp/gallery.log 2>&1 || rc=$?
+          cat /tmp/gallery.log; echo "exit code $rc"
+          test $rc = 0
           grep -q 'style loaded: Libadwaita' /tmp/gallery.log
           test "$(ls /tmp/shots/*.png | wc -l)" -ge 10
 
