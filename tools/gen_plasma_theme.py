@@ -385,6 +385,13 @@ def style_block():
 
 
 def desktoptheme():
+    emit("desktoptheme/Libadwaita/metadata.json", json.dumps({
+        "KPackageStructure": "Plasma/Theme",
+        "KPlugin": {"Authors": [{"Email": EMAIL, "Name": AUTHOR}], "Category": "",
+                    "Description": "GNOME libadwaita look for Plasma panels, popups and tooltips",
+                    "EnabledByDefault": True, "Id": "Libadwaita", "License": "GPL-2.0+", "Name": "Libadwaita",
+                    "Version": "1.0", "Website": WEBSITE},
+        "X-Plasma-API": "5.0"}, indent=4) + "\n")
     pop_layers = parse_shadow(D["widgets"]["popover_menu"]["popover"]["shadow"])
     # the popover shadow has a ring (spread 1, blur 0) plus two blurred layers
     specs = {

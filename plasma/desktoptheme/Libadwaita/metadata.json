@@ -1,0 +1,20 @@
+{
+    "KPackageStructure": "Plasma/Theme",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "130131083+SeniorMatt@users.noreply.github.com",
+                "Name": "Senior Matthew"
+            }
+        ],
+        "Category": "",
+        "Description": "GNOME libadwaita look for Plasma panels, popups and tooltips",
+        "EnabledByDefault": true,
+        "Id": "Libadwaita",
+        "License": "GPL-2.0+",
+        "Name": "Libadwaita",
+        "Version": "1.0",
+        "Website": "https://github.com/SeniorMatt/qt-libadwaita"
+    },
+    "X-Plasma-API": "5.0"
+}
