@@ -1,4 +1,4 @@
-# Step 1 notes (2026-11-20) - move into the repo's docs/ once it exists
+# Research notes (2026-11-20)
 
 ## Versions followed
 - libadwaita **1.10.0** (tag 2026-09-14; newest stable; 1.9.4 / 1.8.8 are point releases of older branches)

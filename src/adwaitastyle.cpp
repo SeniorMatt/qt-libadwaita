@@ -37,7 +37,7 @@ void AdwaitaStyle::reload()
 // (env wins; Flatpak apps: flatpak override --user --env=ADWAITA_SPACING=1.5).
 //   spacing   = compact (0.75) | normal (1) | comfortable (1.5) | any number: scales layout gaps, margins, list rows
 //   font-size = point size of Adwaita Sans (default 10: Qt/KDE layouts are made for 10 pt and clip text at
-//               libadwaita's 11, owner's choice 2026-11-20; 11 = exact GNOME size; 0 keeps the app's font)
+//               libadwaita's 11; 11 = exact GNOME size; 0 keeps the app's font)
 static QVariant adwOption(const char *env, const char *key)
 {
     const QByteArray e = qgetenv(env);

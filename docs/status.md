@@ -5,14 +5,14 @@ libadwaita 1.10.0, GNOME 51.1 (checked at the start; no newer release during the
 
 ## What was built
 - `qtlibadwaitastyle.so`: a QStyle plugin, key "Libadwaita", for Qt 6 (built on 6.4, loads in any newer Qt 6) and
-  Qt 5.15. Public Qt API only. GPL-2.0-or-later. Repo: ~/qt-adwaita-work/qt-libadwaita.
+  Qt 5.15. Public Qt API only. GPL-2.0-or-later.
 - Covers buttons (flat, suggested, destructive, pill, circular via the `adwaita-class` property), entries, spin
   buttons, dropdowns, checks, radios, switches, sliders, progress bars, tabs, menus and popovers, tooltips, lists,
   trees, tables, headers, overlay scroll bars, focus rings, header bar and boxed lists (gallery classes).
 - Settings from the desktop portal: light/dark, accent colour (nine accents), high contrast, reduced motion; live
   switching. Env overrides: ADWAITA_COLOR_SCHEME, ADWAITA_ACCENT, ADWAITA_HIGH_CONTRAST, ADWAITA_ANIMATIONS.
 - User options: ~/.config/qt-libadwaita.conf `spacing=` and `font-size=` (env ADWAITA_SPACING / ADWAITA_FONT_SIZE).
-  Default font size 10 pt (owner's choice: Qt/KDE layouts clip text at libadwaita's 11 pt).
+  Default font size 10 pt (Qt/KDE layouts clip text at libadwaita's 11 pt).
 - KDE colour schemes (data/kde-colors/: Libadwaita, Libadwaita Dark, High Contrast, High Contrast Dark), generated from
   the tokens, so KDE apps paint sidebars and views with the same colours.
 - Flatpak apps: install.sh adds a user Flatpak override (plugin path read-only); no separate extension package.
@@ -42,14 +42,14 @@ focus rings, header bar, progress, spin button, tabs.
 ## Guidelines checklist summary
 The full list is below: 25 ok, 6 partial, 1 todo (backdrop), the rest n/a.
 
-## Third-party apps tested (shots in tests/visual/apps/, light and dark)
+## Third-party apps tested (screenshot scripts in tests/visual/apps/)
 - Dolphin 26.08 and Kate 26.08 (Flatpak, KDE runtime 6.11): good with the Libadwaita KDE colour scheme.
 - qBittorrent 5.3 (Flatpak): good.
 - VLC (host, Qt 5): good, menus included.
 - OBS (host, Qt 6): partly; OBS paints most of its window with its own stylesheet theme, only menus and dialogs
   are ours.
 - Telegram Desktop: not tested; it bundles Qt statically and ignores style plugins.
-- Kinoklip: the change to list the style in its style menu was handed to the Kinoklip session.
+- Kinoklip: lists the style in its style menu.
 
 ## Guidelines checklist (detail)
 
