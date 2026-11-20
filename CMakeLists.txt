@@ -51,10 +51,15 @@ add_library(adwaita MODULE
     src/adwaitastyle_entries.cpp
     src/adwaitastyle_checks.cpp
     src/adwaitastyle_focus.cpp
+    src/adwaitastyle_scroll.cpp
+    src/adwaitastyle_range.cpp
+    src/adwaitastyle_menus.cpp
+    src/adwaitastyle_tabs.cpp
+    src/adwaitastyle_views.cpp
     src/adwaitastyleplugin.cpp src/adwaitastyleplugin.h
     ${TOKENS_DATA})
-# Plugin key is "Libadwaita" (the old adwaita-qt already owns "Adwaita"); file name libadwaita.so.
-set_target_properties(adwaita PROPERTIES PREFIX "" OUTPUT_NAME "libadwaita")
+# Plugin key is "Libadwaita" (the old adwaita-qt already owns "Adwaita"); file name qtlibadwaitastyle.so (not libadwaita.so, to avoid confusion with GNOME libadwaita).
+set_target_properties(adwaita PROPERTIES PREFIX "" OUTPUT_NAME "qtlibadwaitastyle")
 target_link_libraries(adwaita PRIVATE Qt${QT_MAJOR}::Widgets Qt${QT_MAJOR}::DBus)
 target_include_directories(adwaita PRIVATE src)
 install(TARGETS adwaita LIBRARY DESTINATION "${ADWAITA_PLUGIN_DEST}")

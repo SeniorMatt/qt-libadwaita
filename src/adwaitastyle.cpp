@@ -88,6 +88,9 @@ void AdwaitaStyle::polish(QPalette &pal)
 
 void AdwaitaStyle::polish(QWidget *w)
 {
+#define X(F) F##_polish(w);
+    ADW_FAMILIES(X)
+#undef X
     QCommonStyle::polish(w);
     if (qobject_cast<QAbstractButton *>(w) || qobject_cast<QComboBox *>(w) || qobject_cast<QLineEdit *>(w))
         w->setAttribute(Qt::WA_Hover, true);
@@ -98,6 +101,9 @@ void AdwaitaStyle::polish(QWidget *w)
 
 void AdwaitaStyle::unpolish(QWidget *w)
 {
+#define X(F) F##_unpolish(w);
+    ADW_FAMILIES(X)
+#undef X
     if (qobject_cast<QAbstractButton *>(w) || qobject_cast<QComboBox *>(w) || qobject_cast<QLineEdit *>(w))
         w->setAttribute(Qt::WA_Hover, false);
     QCommonStyle::unpolish(w);
@@ -159,6 +165,9 @@ void AdwaitaStyle::drawFocusRing(QPainter *p, const QRectF &r, qreal radius) con
 
 void AdwaitaStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
+#define X(F) if (F##_drawPrimitive(pe, opt, p, w)) return;
+    ADW_FAMILIES(X)
+#undef X
     const AdwaitaTokens &t = m_tokens;
     switch (pe) {
     case PE_Widget: {
@@ -200,6 +209,9 @@ void AdwaitaStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, Q
 
 void AdwaitaStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
+#define X(F) if (F##_drawControl(ce, opt, p, w)) return;
+    ADW_FAMILIES(X)
+#undef X
     switch (ce) {
     case CE_PushButtonBevel: if (drawButtonBevel(opt, p, w)) return; break;
     case CE_PushButtonLabel: if (drawButtonLabel(opt, p, w)) return; break;
@@ -210,12 +222,20 @@ void AdwaitaStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPain
 
 void AdwaitaStyle::drawComplexControl(ComplexControl cc, const QStyleOptionComplex *opt, QPainter *p, const QWidget *w) const
 {
+#define X(F) if (F##_drawComplexControl(cc, opt, p, w)) return;
+    ADW_FAMILIES(X)
+#undef X
     if (cc == CC_ComboBox && drawComboBox(opt, p, w)) return;
     QCommonStyle::drawComplexControl(cc, opt, p, w);
 }
 
 QRect AdwaitaStyle::subElementRect(SubElement se, const QStyleOption *opt, const QWidget *w) const
 {
+    { QRect out;
+#define X(F) if (F##_subElementRect(se, opt, w, out)) return out;
+    ADW_FAMILIES(X)
+#undef X
+    }
     const AdwaitaTokens &t = m_tokens;
     switch (se) {
     case SE_PushButtonContents:
@@ -233,6 +253,11 @@ QRect AdwaitaStyle::subElementRect(SubElement se, const QStyleOption *opt, const
 
 QRect AdwaitaStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex *opt, SubControl sc, const QWidget *w) const
 {
+    { QRect out;
+#define X(F) if (F##_subControlRect(cc, opt, sc, w, out)) return out;
+    ADW_FAMILIES(X)
+#undef X
+    }
     if (cc == CC_ComboBox) {
         const QRect r = opt->rect;
         const int arrowW = 28;
@@ -250,6 +275,11 @@ QRect AdwaitaStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex 
 
 int AdwaitaStyle::pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWidget *w) const
 {
+    { int out = 0;
+#define X(F) if (F##_pixelMetric(pm, opt, w, out)) return out;
+    ADW_FAMILIES(X)
+#undef X
+    }
     const AdwaitaTokens &t = m_tokens;
     switch (pm) {
     case PM_DefaultFrameWidth: return qobject_cast<const QLineEdit *>(w) ? 0 : QCommonStyle::pixelMetric(pm, opt, w);
@@ -269,6 +299,11 @@ int AdwaitaStyle::pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWi
 
 QSize AdwaitaStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt, const QSize &sz, const QWidget *w) const
 {
+    { QSize out;
+#define X(F) if (F##_sizeFromContents(ct, opt, sz, w, out)) return out;
+    ADW_FAMILIES(X)
+#undef X
+    }
     const AdwaitaTokens &t = m_tokens;
     switch (ct) {
     case CT_PushButton: {
@@ -287,6 +322,11 @@ QSize AdwaitaStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt, c
 
 int AdwaitaStyle::styleHint(StyleHint sh, const QStyleOption *opt, const QWidget *w, QStyleHintReturn *ret) const
 {
+    { int out = 0;
+#define X(F) if (F##_styleHint(sh, opt, w, ret, out)) return out;
+    ADW_FAMILIES(X)
+#undef X
+    }
     switch (sh) {
     case SH_Button_FocusPolicy: return Qt::StrongFocus;
     case SH_EtchDisabledText: return 0;

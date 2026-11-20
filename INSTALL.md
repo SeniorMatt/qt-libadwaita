@@ -8,7 +8,7 @@ cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local
 cmake --build build -j4
 cmake --install build
 ```
-This installs `libadwaita.so` into `<prefix>/<libdir>/qt6/plugins/styles` (e.g. `~/.local/lib/qt6/plugins/styles`)
+This installs `qtlibadwaitastyle.so` into `<prefix>/<libdir>/qt6/plugins/styles` (e.g. `~/.local/lib/qt6/plugins/styles`)
 and `adwaita-gallery` into `~/.local/bin`. Use `-DADWAITA_PLUGIN_DIR=lib/x86_64-linux-gnu/qt6/plugins/styles` for
 another layout relative to the prefix, or an absolute `-DQT_PLUGIN_INSTALL_DIR=/app/lib/plugins/styles`
 (KDE_INSTALL_QTPLUGINDIR style, e.g. for a Flatpak extension; overrides everything else).

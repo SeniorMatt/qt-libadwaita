@@ -7,6 +7,21 @@
 //   "adwaita-class" = suggested-action | destructive-action | flat | pill | headerbar | boxed-list | boxed-row
 //   "adwaita-switch" = true on a QCheckBox draws a switch.
 //   "adwaita-focus-visible" = true forces the focus ring (test hook).
+
+// Family hooks: each adwaitastyle_<family>.cpp implements these; return true when handled (result in out).
+#define ADW_FAMILY_HOOKS(F) \
+    bool F##_drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const; \
+    bool F##_drawControl(ControlElement ce, const QStyleOption *opt, QPainter *p, const QWidget *w) const; \
+    bool F##_drawComplexControl(ComplexControl cc, const QStyleOptionComplex *opt, QPainter *p, const QWidget *w) const; \
+    bool F##_subElementRect(SubElement se, const QStyleOption *opt, const QWidget *w, QRect &out) const; \
+    bool F##_subControlRect(ComplexControl cc, const QStyleOptionComplex *opt, SubControl sc, const QWidget *w, QRect &out) const; \
+    bool F##_pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWidget *w, int &out) const; \
+    bool F##_sizeFromContents(ContentsType ct, const QStyleOption *opt, const QSize &sz, const QWidget *w, QSize &out) const; \
+    bool F##_styleHint(StyleHint sh, const QStyleOption *opt, const QWidget *w, QStyleHintReturn *ret, int &out) const; \
+    void F##_polish(QWidget *w); \
+    void F##_unpolish(QWidget *w);
+#define ADW_FAMILIES(X) X(scroll) X(range) X(menus) X(tabs) X(views)
+
 class AdwaitaStyle : public QCommonStyle
 {
     Q_OBJECT
@@ -47,6 +62,8 @@ public:
     bool drawEntryPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const;
     bool drawComboBox(const QStyleOptionComplex *opt, QPainter *p, const QWidget *w) const;
     bool drawCheckPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const;
+
+    ADW_FAMILIES(ADW_FAMILY_HOOKS)
 
 private slots:
     void settingsChanged();
