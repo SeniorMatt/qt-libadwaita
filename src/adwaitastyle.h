@@ -63,8 +63,11 @@ public:
     static bool isPillButton(const QWidget *w);
     static bool focusVisible(const QStyleOption *opt, const QWidget *w);
     QColor withDisabled(const QColor &c, const QStyleOption *opt) const;
-    void drawFocusRing(QPainter *p, const QRectF &r, qreal radius) const;  // ring drawn on r's outline
-    QColor buttonFill(ButtonKind k, const QStyleOption *opt) const;
+    void drawFocusRing(QPainter *p, const QRectF &r, qreal radius, qreal f = 1.0) const;  // ring drawn on r's outline; f = fade-in 0..1
+    // Ring that fades in/out (outline transition, 200 ms) as `on` changes; paints nothing while off and faded out.
+    void drawFocus(QPainter *p, const QRectF &r, qreal radius, bool on, const QWidget *w, quint32 idx = 0) const;
+    // With a widget the fill follows hover / press with a 200 ms transition; idx separates sub-parts of one widget.
+    QColor buttonFill(ButtonKind k, const QStyleOption *opt, const QWidget *w = nullptr, quint32 idx = 0) const;
 
     // per widget family (adwaitastyle_*.cpp); return true if handled
     bool drawButtonBevel(const QStyleOption *opt, QPainter *p, const QWidget *w) const;

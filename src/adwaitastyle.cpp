@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "adwaitastyle.h"
 #include "adwaitasettings.h"
+#include "adwaitaanimations.h"
 
 #include <QAbstractButton>
 #include <QAbstractScrollArea>
@@ -289,12 +290,20 @@ QColor AdwaitaStyle::withDisabled(const QColor &c, const QStyleOption *opt) cons
     return r;
 }
 
-void AdwaitaStyle::drawFocusRing(QPainter *p, const QRectF &r, qreal radius) const
+void AdwaitaStyle::drawFocus(QPainter *p, const QRectF &r, qreal radius, bool on, const QWidget *w, quint32 idx) const
+{
+    const qreal f = w ? AdwAnim::value(w, AdwAnim::key(AdwAnim::Ring, idx), on ? 1.0 : 0.0) : (on ? 1.0 : 0.0);
+    if (f > 0) drawFocusRing(p, r, radius, f);
+}
+
+void AdwaitaStyle::drawFocusRing(QPainter *p, const QRectF &r, qreal radius, qreal f) const
 {
     p->save();
     p->setRenderHint(QPainter::Antialiasing);
-    const qreal w = m_tokens.focus_ring_width;
-    QPen pen(m_tokens.focus_ring, w);
+    const qreal w = m_tokens.focus_ring_width * f;  // libadwaita animates outline colour and width
+    QColor rc = m_tokens.focus_ring;
+    if (f < 1) rc.setAlphaF(rc.alphaF() * f);
+    QPen pen(rc, w);
     p->setPen(pen);
     p->setBrush(Qt::NoBrush);
     p->drawRoundedRect(r.adjusted(w / 2, w / 2, -w / 2, -w / 2), radius - w / 2, radius - w / 2);

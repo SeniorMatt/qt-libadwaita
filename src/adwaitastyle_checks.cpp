@@ -93,7 +93,7 @@ bool AdwaitaStyle::drawCheckPrimitive(PrimitiveElement pe, const QStyleOption *o
         p->setBrush((hover || on || prog > 0) ? white : idle);
         p->drawEllipse(kr);
         p->restore();
-        if (focusVisible(opt, w)) drawFocusRing(p, r, r.height() / 2);
+        drawFocus(p, r, r.height() / 2, focusVisible(opt, w), w);
         return true;
     }
 
@@ -133,6 +133,6 @@ bool AdwaitaStyle::drawCheckPrimitive(PrimitiveElement pe, const QStyleOption *o
         }
     }
     p->restore();
-    if (focusVisible(opt, w)) drawFocusRing(p, r, rad);
+    drawFocus(p, r, rad, focusVisible(opt, w), w);
     return true;
 }

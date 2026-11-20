@@ -2,6 +2,7 @@
 // Focus ring and shared state colour helpers. (Ring drawing itself is AdwaitaStyle::drawFocusRing in adwaitastyle.cpp;
 // this file holds the fill-colour logic shared by buttons, combo boxes and entries.)
 #include "adwaitastyle.h"
+#include "adwaitaanimations.h"
 #include <QStyleOption>
 
 static QColor withAlphaF(QColor c, qreal a) { c.setAlphaF(c.alphaF() * a); return c; }
@@ -10,7 +11,7 @@ static QColor over(const QColor &b, const QColor &c, qreal a)
     return QColor::fromRgbF(b.redF() * (1 - a) + c.redF() * a, b.greenF() * (1 - a) + c.greenF() * a, b.blueF() * (1 - a) + c.blueF() * a);
 }
 
-QColor AdwaitaStyle::buttonFill(ButtonKind k, const QStyleOption *opt) const
+QColor AdwaitaStyle::buttonFill(ButtonKind k, const QStyleOption *opt, const QWidget *w, quint32 idx) const
 {
     const AdwaitaTokens &t = m_tokens;
     const bool down = opt->state & (State_Sunken | State_On);
@@ -23,5 +24,6 @@ QColor AdwaitaStyle::buttonFill(ButtonKind k, const QStyleOption *opt) const
     case Flat: base = Qt::transparent; hov = withAlphaF(t.window_fg, 0.07); act = withAlphaF(t.window_fg, 0.16); break;
     default: base = t.button_bg; hov = t.button_hover_bg; act = t.button_active_bg; break;
     }
-    return withDisabled(down ? act : hover ? hov : base, opt);
+    const QColor c = withDisabled(down ? act : hover ? hov : base, opt);
+    return w ? AdwAnim::color(w, AdwAnim::key(AdwAnim::Fill, idx), c) : c;
 }

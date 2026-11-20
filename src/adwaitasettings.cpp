@@ -126,6 +126,7 @@ bool AdwaitaSettings::applyKde()
     QFile file(m_kdeFile);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
     QString section, windowBg, schemeName;
+    bool animOff = false;
     while (!file.atEnd()) {
         const QString line = QString::fromUtf8(file.readLine()).trimmed();
         if (line.startsWith('[')) { section = line; continue; }
@@ -134,7 +135,9 @@ bool AdwaitaSettings::applyKde()
         const QString key = line.left(eq).trimmed(), val = line.mid(eq + 1).trimmed();
         if (section == "[Colors:Window]" && key == "BackgroundNormal") windowBg = val;
         else if (section == "[General]" && key == "ColorScheme") schemeName = val;
+        else if (section == "[KDE]" && key == "AnimationDurationFactor") animOff = val.toDouble() == 0.0 && !val.isEmpty();
     }
+    if (!m_envAnim) m_animations = !animOff;  // System Settings > Animation speed: instant
     auto rgb = [](const QString &v) {
         const QStringList p = v.split(',');
         return p.size() >= 3 ? QColor(p[0].toInt(), p[1].toInt(), p[2].toInt()) : QColor(v);
@@ -160,9 +163,9 @@ void AdwaitaSettings::watchKde()
     connect(w, &QFileSystemWatcher::directoryChanged, debounce, qOverload<>(&QTimer::start));
     connect(debounce, &QTimer::timeout, this, [this, w] {
         if (!w->files().contains(m_kdeFile) && QFileInfo::exists(m_kdeFile)) w->addPath(m_kdeFile);
-        const bool d = m_dark, h = m_highContrast;
+        const bool d = m_dark, h = m_highContrast, a = m_animations;
         applyKde();
-        if (d != m_dark || h != m_highContrast) Q_EMIT changed();
+        if (d != m_dark || h != m_highContrast || a != m_animations) Q_EMIT changed();
     });
 }
 
