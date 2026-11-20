@@ -6,6 +6,7 @@
 #include <QDBusMessage>
 #include <QDBusReply>
 #include <QDebug>
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -46,7 +47,10 @@ AdwaitaSettings::AdwaitaSettings()
 {
     m_accent = namedAccent("blue");
     applyEnv();
-    load();
+    // A portal backend (e.g. xdg-desktop-portal-kde shows Qt file dialogs) would block on a call to itself.
+    if (!QCoreApplication::applicationName().startsWith(QLatin1String("xdg-desktop-portal"))
+        && !QCoreApplication::applicationFilePath().contains(QLatin1String("xdg-desktop-portal")))
+        load();
     if (applyKde()) watchKde();
     QDBusConnection::sessionBus().connect(kPortal, kPath, kIface, "SettingChanged", this,
                                           SLOT(onSettingChanged(QString, QString, QDBusVariant)));

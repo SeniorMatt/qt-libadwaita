@@ -3,6 +3,7 @@
 #include "adwaitastyle.h"
 
 #include <QAbstractItemView>
+#include <QPointer>
 #include <QHeaderView>
 #include <QListView>
 #include <QPainter>
@@ -31,6 +32,44 @@ bool inComboPopup(const QWidget *w)
 
 }  // namespace
 
+// KIO's places view (Dolphin's Places panel, KDE file dialogs) paints its icon 4 px from the item edge, so the
+// icon sat on the rim of our inset pill. Its delegate is wrapped: painting is shifted right by kPlacesShift and
+// PE_PanelItemViewItem (told by s_inPlaces) draws the pill out to 6 px from the view edge, leaving the icon
+// kPlacesShift - 2 px inside the pill, like GTK sidebars. KIO places text at absolute x, so a translation is needed.
+static bool s_inPlaces = false;
+static constexpr int kPlacesShift = 12;
+class PlacesDelegate : public QAbstractItemDelegate
+{
+public:
+    PlacesDelegate(QAbstractItemDelegate *inner, QObject *parent) : QAbstractItemDelegate(parent), m_inner(inner)
+    {
+        setObjectName("adwPlacesDelegate");
+        connect(inner, &QAbstractItemDelegate::sizeHintChanged, this, &QAbstractItemDelegate::sizeHintChanged);
+        connect(inner, &QAbstractItemDelegate::commitData, this, &QAbstractItemDelegate::commitData);
+        connect(inner, &QAbstractItemDelegate::closeEditor, this, &QAbstractItemDelegate::closeEditor);
+    }
+    QPointer<QAbstractItemDelegate> m_inner;
+    void paint(QPainter *p, const QStyleOptionViewItem &o, const QModelIndex &i) const override
+    {
+        if (!m_inner) return;
+        QStyleOptionViewItem s = o;
+        s.rect = QRect(o.rect.left(), o.rect.top(), qMax(0, o.rect.width() - kPlacesShift - 6), o.rect.height());
+        p->save();
+        p->translate(o.direction == Qt::RightToLeft ? 6 : kPlacesShift, 0);
+        s_inPlaces = true;
+        m_inner->paint(p, s, i);
+        s_inPlaces = false;
+        p->restore();
+    }
+    QSize sizeHint(const QStyleOptionViewItem &o, const QModelIndex &i) const override { return m_inner ? m_inner->sizeHint(o, i) : QSize(); }
+    QWidget *createEditor(QWidget *p, const QStyleOptionViewItem &o, const QModelIndex &i) const override { return m_inner ? m_inner->createEditor(p, o, i) : nullptr; }
+    void setEditorData(QWidget *e, const QModelIndex &i) const override { if (m_inner) m_inner->setEditorData(e, i); }
+    void setModelData(QWidget *e, QAbstractItemModel *m, const QModelIndex &i) const override { if (m_inner) m_inner->setModelData(e, m, i); }
+    void updateEditorGeometry(QWidget *e, const QStyleOptionViewItem &o, const QModelIndex &i) const override { if (m_inner) m_inner->updateEditorGeometry(e, o, i); }
+    bool editorEvent(QEvent *e, QAbstractItemModel *m, const QStyleOptionViewItem &o, const QModelIndex &i) override { return m_inner && m_inner->editorEvent(e, m, o, i); }
+    bool helpEvent(QHelpEvent *e, QAbstractItemView *v, const QStyleOptionViewItem &o, const QModelIndex &i) override { return m_inner && m_inner->helpEvent(e, v, o, i); }
+};
+
 bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
     const AdwaitaTokens &t = m_tokens;
@@ -42,6 +81,7 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         if (!v) return false;
         const bool sel = v->state & State_Selected;
         const bool hover = (v->state & State_MouseOver) && (v->state & State_Enabled);
+        if (!w) w = v->widget;  // KIO's places delegate passes no widget
         const bool combo = inComboPopup(w);
         // libadwaita: sidebar / list rows are rounded pills (radius 9) inset a little; trees and tables (column
         // views) keep full-width rows, rounded only at the row ends.
@@ -63,6 +103,10 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
                 shape.setFillRule(Qt::WindingFill);
                 shape = shape.simplified();
             }
+        } else if (s_inPlaces) {
+            const bool rtl = v->direction == Qt::RightToLeft;
+            r.adjust(rtl ? 0 : 6 - kPlacesShift, 1, rtl ? kPlacesShift - 6 : 0, -1);
+            shape.addRoundedRect(r, rad, rad);
         } else {
             if (!combo && r.width() > 24 && r.height() > 12) r.adjust(r.width() > 120 ? 6 : 2, 1, r.width() > 120 ? -6 : -2, -1);
             shape.addRoundedRect(r, rad, rad);
@@ -80,7 +124,7 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         } else if (sel) {
             fill = alpha(t.accent_bg, hover ? 0.32 : 0.25);
         } else if (hover) {
-            fill = alpha(t.view_fg, 0.04);
+            fill = alpha(t.view_fg, 0.08);  // .04 was too faint to notice
         }
         if (fill.isValid()) {
             p->setBrush(fill);
@@ -96,7 +140,7 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
         if (sel) p->fillRect(r, alpha(t.accent_bg, hover ? 0.32 : 0.25));
-        else if (hover) p->fillRect(r, alpha(t.view_fg, 0.04));
+        else if (hover) p->fillRect(r, alpha(t.view_fg, 0.08));
         if (opt->state & State_Children) {
             const bool open = opt->state & State_Open;
             QColor c = t.view_fg;
@@ -294,7 +338,17 @@ void AdwaitaStyle::views_polish(QWidget *w)
         v->viewport()->setAttribute(Qt::WA_Hover, true);
         v->setMouseTracking(true);
         if (auto *tv = qobject_cast<QTableView *>(v)) tv->setShowGrid(false);
+        if (v->inherits("KFilePlacesView") && v->itemDelegate() && !v->findChild<QObject *>("adwPlacesDelegate", Qt::FindDirectChildrenOnly))
+            v->setItemDelegate(new PlacesDelegate(v->itemDelegate(), v));
     }
 }
 
-void AdwaitaStyle::views_unpolish(QWidget *) {}
+void AdwaitaStyle::views_unpolish(QWidget *w)
+{
+    auto *v = qobject_cast<QAbstractItemView *>(w);
+    if (!v) return;
+    if (auto *pd = static_cast<PlacesDelegate *>(v->findChild<QAbstractItemDelegate *>("adwPlacesDelegate", Qt::FindDirectChildrenOnly))) {
+        if (v->itemDelegate() == pd && pd->m_inner) v->setItemDelegate(pd->m_inner);
+        pd->deleteLater();
+    }
+}

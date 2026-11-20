@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QPainter>
 #include <QPainterPath>
+#include <QPointer>
 #include <QStyleOption>
 #include <QWidget>
 
@@ -125,7 +126,13 @@ bool AdwaitaStyle::eventFilter(QObject *o, QEvent *e)
             && !(QGuiApplication::queryKeyboardModifiers() & Qt::AltModifier))
             QMetaObject::invokeMethod(qApp, [] { if (!QApplication::activePopupWidget()) setAltHeld(false); }, Qt::QueuedConnection);
         break;
+    case QEvent::Show:
+        if (s_altHeld && o->isWidgetType() && static_cast<QWidget *>(o)->windowType() == Qt::Popup
+            && !(QGuiApplication::queryKeyboardModifiers() & Qt::AltModifier))
+            setAltHeld(false);
+        break;
     case QEvent::MouseButtonPress:
+    case QEvent::WindowDeactivate:
     case QEvent::ApplicationStateChange:
         if (s_altHeld && !(QGuiApplication::queryKeyboardModifiers() & Qt::AltModifier)) setAltHeld(false);
         break;
@@ -146,8 +153,10 @@ void AdwaitaStyle::settingsChanged()
     if (!qApp) return;
     applyAppPalette(standardPalette());
     // Re-polish every widget so cached state follows the new variant.
-    const auto tops = QApplication::allWidgets();
-    for (QWidget *w : tops) {
+    QList<QPointer<QWidget>> all;
+    for (QWidget *w : QApplication::allWidgets()) all.append(w);
+    for (const QPointer<QWidget> &w : all) {
+        if (!w) continue;
         QEvent e(QEvent::StyleChange);
         QApplication::sendEvent(w, &e);
         w->update();
@@ -295,6 +304,28 @@ void AdwaitaStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, Q
 #undef X
     const AdwaitaTokens &t = m_tokens;
     switch (pe) {
+    case PE_IndicatorArrowUp:
+    case PE_IndicatorArrowDown:
+    case PE_IndicatorArrowLeft:
+    case PE_IndicatorArrowRight: {  // pan-*-symbolic: a thin chevron, not Qt's filled triangle
+        const QRectF r(opt->rect);
+        const qreal s = qBound(2.0, qMin(r.width(), r.height()) / 4.0, 4.0);
+        const QPointF m = r.center();
+        QPolygonF poly;
+        if (pe == PE_IndicatorArrowRight) poly << m + QPointF(-s / 2, -s) << m + QPointF(s / 2, 0) << m + QPointF(-s / 2, s);
+        else if (pe == PE_IndicatorArrowLeft) poly << m + QPointF(s / 2, -s) << m + QPointF(-s / 2, 0) << m + QPointF(s / 2, s);
+        else if (pe == PE_IndicatorArrowDown) poly << m + QPointF(-s, -s / 2) << m + QPointF(0, s / 2) << m + QPointF(s, -s / 2);
+        else poly << m + QPointF(-s, s / 2) << m + QPointF(0, -s / 2) << m + QPointF(s, s / 2);
+        QColor c = opt->palette.color(QPalette::ButtonText);
+        if (!(opt->state & State_Enabled)) c.setAlphaF(c.alphaF() * 0.55);
+        p->save();
+        p->setRenderHint(QPainter::Antialiasing);
+        p->setPen(QPen(c, 1.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        p->setBrush(Qt::NoBrush);
+        p->drawPolyline(poly);
+        p->restore();
+        return;
+    }
     case PE_Widget: {
         const QString c = adwClass(w);
         if (c == "headerbar") {

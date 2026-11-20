@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Widget family: menus, menu bars, combo popups, tooltips (libadwaita popover.menu / tooltip, see docs/tokens.md sec. 5)
 #include "adwaitastyle.h"
+#include <QWindow>
 
 #include <QAbstractItemView>
 #include <QApplication>
@@ -48,6 +49,9 @@ QColor alpha(QColor c, qreal a) { c.setAlphaF(a); return c; }
 bool compositorActive()
 {
     if (!qEnvironmentVariableIsEmpty("ADWAITA_NO_TRANSLUCENT")) return false;
+    // In a Wayland session every window, XWayland ones included, goes through the compositor (KWin does not
+    // always own _NET_WM_CM_S0 for XWayland, which made menus fall back to hard masked corners).
+    if (qgetenv("XDG_SESSION_TYPE") == "wayland" || !qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) return true;
 #ifdef ADWAITA_HAVE_XCB
     if (QGuiApplication::platformName() == QLatin1String("xcb")) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -186,6 +190,13 @@ public:
     {
         if (o != m_w) return false;
         if (e->type() == QEvent::Hide) { m_done = false; }
+        // Some apps create the native window before the style is applied (Plasma calls winId() on its menus),
+        // so the surface has no alpha and the corners/shadow cannot be translucent. The Show event comes before
+        // the native window is mapped: drop it here and Qt recreates it with an alpha channel right away.
+        if (e->type() == QEvent::Show && m_w->testAttribute(Qt::WA_TranslucentBackground)) {
+            QWindow *wh = m_w->windowHandle();
+            if (wh && wh->handle() && !wh->format().hasAlpha() && wh->requestedFormat().hasAlpha()) wh->destroy();
+        }
         if (e->type() == QEvent::Show && !m_done && m_w->testAttribute(Qt::WA_TranslucentBackground)) {
             m_done = true;
             place();

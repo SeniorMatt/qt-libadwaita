@@ -153,6 +153,17 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
     }
 }
 
+// "&General" -> "General", "&&" -> "&" (the text a mnemonic label shows)
+static QString plainText(const QString &s)
+{
+    QString o; o.reserve(s.size());
+    for (int i = 0; i < s.size(); ++i) {
+        if (s.at(i) == QLatin1Char('&')) { if (++i >= s.size()) break; }
+        o.append(s.at(i));
+    }
+    return o;
+}
+
 bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
     const AdwaitaTokens &t = m_tokens;
@@ -195,8 +206,13 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
             const QRect tr = tab->rect.adjusted(side, 0, -side, 0);
             const int isz = 16;
             const bool hasIcon = !tab->icon.isNull();
-            const int tw = qMin(p->fontMetrics().horizontalAdvance(tab->text), tr.width() - (hasIcon ? isz + 6 : 0));
-            const QString txt = p->fontMetrics().elidedText(tab->text, Qt::ElideRight, tr.width() - (hasIcon ? isz + 6 : 0));
+            const QString plain = plainText(tab->text);
+            const int avail = tr.width() - (hasIcon ? isz + 6 : 0);
+            const bool fits = p->fontMetrics().horizontalAdvance(plain) <= avail;
+            const int tw = qMin(p->fontMetrics().horizontalAdvance(plain), avail);
+            const QString txt = fits ? tab->text : p->fontMetrics().elidedText(plain, Qt::ElideRight, avail);
+            int tflags = Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine;
+            if (fits) tflags |= Qt::TextShowMnemonic | (proxy()->styleHint(SH_UnderlineShortcut, opt, w) ? 0 : Qt::TextHideMnemonic);
             const int total = tw + (hasIcon ? isz + 6 : 0);
             int x = tr.center().x() - total / 2 + (total % 2 ? 0 : 0);
             if (hasIcon) {
@@ -205,7 +221,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
                 x += isz + 6;
             }
             p->setPen(withDisabled(t.window_fg, opt));
-            p->drawText(QRect(x, tab->rect.top(), tw + 2, tab->rect.height() - 1), Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine, txt);
+            p->drawText(QRect(x, tab->rect.top(), tw + 2, tab->rect.height() - 1), tflags, txt);
             p->restore();
             return true;
         }
@@ -467,7 +483,7 @@ bool AdwaitaStyle::tabs_sizeFromContents(ContentsType ct, const QStyleOption *op
             // CE_TabBarTabLabel); make the tab wide enough for the whole title unless the app squeezes it.
             const int icon = tab->icon.isNull() ? 0 : 16 + 6;
             const int side = (tab->rightButtonSize.width() > 0 || tab->leftButtonSize.width() > 0) ? 26 : 12;
-            s.setWidth(qMax(s.width(), tab->fontMetrics.horizontalAdvance(tab->text) + icon + 2 * side + 2));
+            s.setWidth(qMax(s.width(), tab->fontMetrics.horizontalAdvance(plainText(tab->text)) + icon + 2 * side + 2));
         }
         else s.setWidth(qMax(s.width(), kTabH));
         out = s;
