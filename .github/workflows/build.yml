@@ -95,3 +95,26 @@ jobs:
           ls $HOME/.local/share/fonts/Adwaita-qt-libadwaita
           ./install.sh --remove
           test ! -e $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
+
+  tarball:
+    name: release tarball (Debian 12)
+    runs-on: ubuntu-latest
+    container: debian:12
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y build-essential cmake git ca-certificates curl xz-utils qt6-base-dev qtbase5-dev
+      - uses: actions/checkout@v4
+      - name: Build the tarball
+        run: tools/make_release.sh "$PWD/dist"
+      - name: Install from the tarball without a compiler
+        run: |
+          export HOME=$(mktemp -d)
+          export XDG_CONFIG_HOME=$HOME/.config
+          mkdir /tmp/unpack && tar -C /tmp/unpack -xzf dist/*.tar.gz
+          cd /tmp/unpack/qt-libadwaita-*/
+          test -f qt6/qtlibadwaitastyle.so && test -f qt5/qtlibadwaitastyle.so && test -f fonts/AdwaitaSans-Regular.ttf
+          env PATH=/usr/bin:/bin ./install.sh --enable
+          test -f $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
+          test -f $HOME/.local/lib/qt5/plugins/styles/qtlibadwaitastyle.so
+          ./install.sh --remove
+          test ! -e $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
