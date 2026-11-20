@@ -19,6 +19,7 @@
 #include <QMenuBar>
 #include <QPainter>
 #include <QPainterPath>
+#include <QRegion>
 #include <QStyleOptionMenuItem>
 #include <QWidget>
 
@@ -112,6 +113,29 @@ void shadowLayer(QPainter *p, const QRectF &r, qreal rad, qreal dy, qreal spread
     }
 }
 
+// Without a compositor a popup cannot be translucent, so it keeps its rounded corners with a window mask
+// (like Breeze does): the corners are cut off, without shadow and without antialiasing at the edge.
+class RoundMask : public QObject
+{
+public:
+    RoundMask(QWidget *w, qreal radius) : QObject(w), m_w(w), m_r(radius) { setObjectName("adwRoundMask"); apply(); }
+    void apply()
+    {
+        if (m_w->testAttribute(Qt::WA_TranslucentBackground)) { m_w->clearMask(); return; }
+        QPainterPath path;
+        path.addRoundedRect(QRectF(m_w->rect()), m_r, m_r);
+        m_w->setMask(QRegion(path.toFillPolygon().toPolygon()));
+    }
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        if (o == m_w && (e->type() == QEvent::Resize || e->type() == QEvent::Show)) apply();
+        return false;
+    }
+private:
+    QWidget *m_w;
+    qreal m_r;
+};
+
 // Event filter that paints the popover background under a combo box popup container.
 class PopupPainter : public QObject
 {
@@ -142,9 +166,8 @@ public:
                 p.setPen(Qt::NoPen); p.setBrush(m_t->popover_bg);
                 p.drawRoundedRect(r, m_t->radius_popover, m_t->radius_popover);
             } else {
-                p.fillRect(r, m_t->popover_bg);
-                p.setPen(QPen(m_t->border, 1)); p.setBrush(Qt::NoBrush);
-                p.drawRect(r.adjusted(.5, .5, -.5, -.5));
+                p.setPen(QPen(m_t->border, 1)); p.setBrush(m_t->popover_bg);
+                p.drawRoundedRect(r.adjusted(.5, .5, -.5, -.5), m_t->radius_popover - .5, m_t->radius_popover - .5);
             }
         }
         return false;
@@ -249,7 +272,7 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
     case PE_PanelMenu: {
         const bool translucent = w && w->testAttribute(Qt::WA_TranslucentBackground);
         const qreal m = translucent ? kShadow : 0;
-        const qreal rad = translucent ? t.radius_popover : 0;  // square corners without a compositor
+        const qreal rad = translucent ? t.radius_popover : t.radius_popover - .5;  // masked (RoundMask) without a compositor
         const QRectF r = QRectF(opt->rect).adjusted(m, m, -m, -m);
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
@@ -276,7 +299,7 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         p->setRenderHint(QPainter::Antialiasing);
         p->setPen(QPen(QColor(255, 255, 255, 26), 1));
         p->setBrush(tr ? t.tooltip_bg : QColor::fromRgb(0x1c, 0x1c, 0x1e));  // opaque flat of rgba(0,0,6,.8) when not composited
-        const qreal trad = tr ? t.radius : 0;
+        const qreal trad = tr ? t.radius : t.radius - .5;
         p->drawRoundedRect(QRectF(opt->rect).adjusted(.5, .5, -.5, -.5), trad, trad);
         p->restore();
         return true;
@@ -480,6 +503,8 @@ void AdwaitaStyle::menus_polish(QWidget *w)
             if (!isTipLabel(w) && !w->findChild<QObject *>("adwPopupPlacer")) w->installEventFilter(new PopupPlacer(w));
             if (isComboPopup(w)) { QEvent se(QEvent::StyleChange); QCoreApplication::sendEvent(w, &se); }  // refresh the cached frame width (margin now 18)
         }
+        if (!translucent && !w->findChild<QObject *>("adwRoundMask"))
+            w->installEventFilter(new RoundMask(w, isTipLabel(w) ? m_tokens.radius : m_tokens.radius_popover));
         if (isTipLabel(w) && !w->findChild<QObject *>("adwTipFixer")) w->installEventFilter(new TipFixer(w));
         if (isTipLabel(w)) return;
     }
@@ -497,5 +522,8 @@ void AdwaitaStyle::menus_polish(QWidget *w)
 void AdwaitaStyle::menus_unpolish(QWidget *w)
 {
     if (qobject_cast<QMenu *>(w) || isComboPopup(w) || isTipLabel(w))
+    {
         w->setAttribute(Qt::WA_TranslucentBackground, false);
+        if (QObject *m = w->findChild<QObject *>("adwRoundMask")) { w->removeEventFilter(m); delete m; w->clearMask(); }
+    }
 }

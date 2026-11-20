@@ -36,6 +36,8 @@ if wid:
     subprocess.run(["xdotool", "windowsize", wid, "1100", "700"], env=env)
     subprocess.run(["xdotool", "windowmove", wid, "0", "0"], env=env)
     time.sleep(4)
+    for k in os.environ.get("SHOT_KEYS", "").split():  # e.g. SHOT_KEYS=alt+f opens the File menu
+        subprocess.run(["xdotool", "key", k], env=env); time.sleep(1.5)
     if os.path.exists(out): os.remove(out)
     subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "x11grab", "-video_size", "1100x700", "-i", disp + "+0,0",
                     "-frames:v", "1", out], env=env)
