@@ -12,6 +12,7 @@
 #include <QEvent>
 #include <QPainterPath>
 #include <QRegion>
+#include <QWidget>
 #include <QStyleOptionHeader>
 #include <QStyleOptionViewItem>
 
@@ -247,36 +248,71 @@ bool AdwaitaStyle::views_styleHint(StyleHint sh, const QStyleOption *, const QWi
 
 
 // Framed scroll areas get the libadwaita frame radius (12). The viewport and the scroll bars would cover the
-// rounded corners, so they are clipped with a mask built from the frame's inner rounded rect.
+// rounded corners, so four small corner patches sit on top: each paints the outside of the arc in the parent's
+// background colour plus the antialiased border arc. (Window masks on the children went stale on resize.)
 namespace {
+class CornerPatch : public QWidget
+{
+public:
+    CornerPatch(QAbstractScrollArea *a, int corner, const AdwaitaTokens *t) : QWidget(a), m_a(a), m_corner(corner), m_t(t)
+    {
+        setObjectName("adwCornerPatch");
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+        setAttribute(Qt::WA_NoSystemBackground);
+        setFocusPolicy(Qt::NoFocus);
+    }
+protected:
+    void paintEvent(QPaintEvent *) override
+    {
+        const qreal R = m_t->radius_card;
+        QWidget *pw = m_a->parentWidget();
+        const QColor outside = pw ? pw->palette().color(pw->backgroundRole()) : m_t->window_bg;
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+        // work in a frame-sized coordinate system translated so this patch shows its corner
+        const QRectF frame = QRectF(m_a->rect());
+        p.translate(-pos());
+        QPainterPath outer; outer.addRect(QRectF(geometry()));
+        QPainterPath inner; inner.addRoundedRect(frame, R, R);
+        p.fillPath(outer.subtracted(inner), outside);
+        p.setPen(QPen(m_t->border, 1)); p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(frame.adjusted(.5, .5, -.5, -.5), R - .5, R - .5);
+    }
+private:
+    QAbstractScrollArea *m_a;
+    int m_corner;
+    const AdwaitaTokens *m_t;
+};
+
 class RoundScrollArea : public QObject
 {
 public:
-    RoundScrollArea(QAbstractScrollArea *a, qreal radius) : QObject(a), m_a(a), m_r(radius) { setObjectName("adwRoundScrollArea"); }
+    RoundScrollArea(QAbstractScrollArea *a, const AdwaitaTokens *t) : QObject(a), m_a(a)
+    {
+        setObjectName("adwRoundScrollArea");
+        for (int i = 0; i < 4; ++i) m_p[i] = new CornerPatch(a, i, t);
+        m_r = int(t->radius_card) + 1;
+        apply();
+    }
+    ~RoundScrollArea() override { for (auto *c : m_p) delete c; }
     void apply()
     {
         const bool on = m_a->frameWidth() > 0 && m_a->frameShape() != QFrame::NoFrame
                         && m_a->frameShape() != QFrame::HLine && m_a->frameShape() != QFrame::VLine;
-        QPainterPath path;
-        const QRectF in = QRectF(m_a->rect()).adjusted(1, 1, -1, -1);
-        path.addRoundedRect(in, m_r - 1, m_r - 1);
-        const QRegion round(path.toFillPolygon().toPolygon());
-        for (QObject *o : m_a->children()) {
-            auto *c = qobject_cast<QWidget *>(o);
-            if (!c || c->isWindow()) continue;
-            if (!on) { if (!c->mask().isEmpty()) c->clearMask(); continue; }
-            const QRegion full(c->geometry());
-            const QRegion clip = round.intersected(full);
-            if (clip == full) { if (!c->mask().isEmpty()) c->clearMask(); }
-            else c->setMask(clip.translated(-c->pos()));
-            c->removeEventFilter(this); c->installEventFilter(this);
+        const int W = m_a->width(), H = m_a->height(), r = m_r;
+        const QPoint at[4] = {{0, 0}, {W - r, 0}, {0, H - r}, {W - r, H - r}};
+        for (int i = 0; i < 4; ++i) {
+            m_p[i]->setVisible(on);
+            if (!on) continue;
+            m_p[i]->setGeometry(QRect(at[i], QSize(r, r)));
+            m_p[i]->raise();
         }
     }
     bool eventFilter(QObject *o, QEvent *e) override
     {
         switch (e->type()) {
-        case QEvent::Resize: case QEvent::Move: case QEvent::Show: case QEvent::Hide: case QEvent::LayoutRequest:
-        case QEvent::StyleChange: case QEvent::ChildAdded:
+        case QEvent::Resize: case QEvent::Show: case QEvent::StyleChange: case QEvent::ChildAdded:
+        case QEvent::LayoutRequest: case QEvent::PaletteChange:
             if (!m_pending) { m_pending = true; QMetaObject::invokeMethod(this, [this] { m_pending = false; apply(); }, Qt::QueuedConnection); }
             break;
         default: break;
@@ -285,7 +321,8 @@ public:
     }
 private:
     QAbstractScrollArea *m_a;
-    qreal m_r;
+    CornerPatch *m_p[4];
+    int m_r = 13;
     bool m_pending = false;
 };
 }  // namespace
@@ -298,8 +335,8 @@ void AdwaitaStyle::views_polish(QWidget *w)
         if (auto *tv = qobject_cast<QTableView *>(v)) tv->setShowGrid(false);
     }
     if (auto *a = qobject_cast<QAbstractScrollArea *>(w)) {
-        if (!inComboPopup(a) && !a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) {
-            auto *f = new RoundScrollArea(a, m_tokens.radius_card);
+        if (!qEnvironmentVariableIntValue("ADWAITA_SQUARE_FRAMES") && !inComboPopup(a) && !a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) {
+            auto *f = new RoundScrollArea(a, &m_tokens);
             a->installEventFilter(f);
         }
     }
@@ -307,10 +344,6 @@ void AdwaitaStyle::views_polish(QWidget *w)
 
 void AdwaitaStyle::views_unpolish(QWidget *w)
 {
-    if (auto *a = qobject_cast<QAbstractScrollArea *>(w)) {
-        if (QObject *f = a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) {
-            for (QObject *o : a->children()) if (auto *c = qobject_cast<QWidget *>(o)) { c->removeEventFilter(f); c->clearMask(); }
-            a->removeEventFilter(f); delete f;
-        }
-    }
+    if (auto *a = qobject_cast<QAbstractScrollArea *>(w))
+        if (QObject *f = a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) { a->removeEventFilter(f); delete f; }
 }
