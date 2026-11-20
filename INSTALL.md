@@ -77,7 +77,7 @@ Create `~/.config/qt-libadwaita.conf` (restart the apps after a change):
 
     [General]
     spacing=comfortable   # compact | normal | comfortable | any number 0.5-3 (gaps, margins, list rows)
-    font-size=10          # Adwaita Sans size; 11 is libadwaita's, 10 suits KDE layouts, 0 keeps the app's font
+    font-size=11          # Adwaita Sans size; default 10 (fits Qt/KDE layouts), 11 = exact GNOME size, 0 = app font
 
 Or use the env vars `ADWAITA_SPACING` and `ADWAITA_FONT_SIZE`. Flatpak apps can't read that file; use
 `flatpak override --user --env=ADWAITA_SPACING=comfortable <app-id>` instead.

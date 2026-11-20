@@ -216,6 +216,10 @@ void AdwaitaStyle::scroll_polish(QWidget *w)
     auto *b = qobject_cast<QScrollBar *>(w);
     if (!b) return;
     b->setAttribute(Qt::WA_Hover, true);
+    // QScrollBar marks itself opaque at construction unless the style reports it transient, and isOverlayBar() is
+    // false then (no parent yet). Our slider is translucent over the content: without this, each repaint (hover,
+    // fade) piles alpha on stale pixels and an idle bar turns solid white and never fades away.
+    b->setAttribute(Qt::WA_OpaquePaintEvent, false);
     if (!b->findChild<ScrollAnim *>(QString(), Qt::FindDirectChildrenOnly))
         new ScrollAnim(b);
 }

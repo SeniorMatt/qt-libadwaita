@@ -5,6 +5,7 @@
 #include <QAbstractButton>
 #include <QAbstractScrollArea>
 #include <QApplication>
+#include <QKeyEvent>
 #include <QStandardPaths>
 #include <QSettings>
 #include <QFontInfo>
@@ -34,7 +35,8 @@ void AdwaitaStyle::reload()
 // User options: ~/.config/qt-libadwaita.conf ([General] spacing=, font-size=) or env ADWAITA_SPACING / ADWAITA_FONT_SIZE
 // (env wins; Flatpak apps: flatpak override --user --env=ADWAITA_SPACING=1.5).
 //   spacing   = compact (0.75) | normal (1) | comfortable (1.5) | any number: scales layout gaps, margins, list rows
-//   font-size = point size of Adwaita Sans (default 11; 10 suits KDE layouts; 0 keeps the app's font)
+//   font-size = point size of Adwaita Sans (default 10: Qt/KDE layouts are made for 10 pt and clip text at
+//               libadwaita's 11, owner's choice 2026-11-20; 11 = exact GNOME size; 0 keeps the app's font)
 static QVariant adwOption(const char *env, const char *key)
 {
     const QByteArray e = qgetenv(env);
@@ -58,7 +60,7 @@ static int adwFontSize()
 {
     const QVariant v = adwOption("ADWAITA_FONT_SIZE", "font-size");
     bool ok = false; const int n = v.toInt(&ok);
-    return (ok && n >= 0 && n <= 40) ? n : 11;
+    return (ok && n >= 0 && n <= 40) ? n : 10;
 }
 
 static bool s_applyingPalette = false;
@@ -88,8 +90,48 @@ void AdwaitaStyle::unpolish(QApplication *app)
     QCommonStyle::unpolish(app);
 }
 
+// GTK shows mnemonic underlines only while Alt is held (and in menus opened that way). Track Alt application-wide
+// and repaint visible windows when it changes; SH_UnderlineShortcut follows it.
+static bool s_altHeld = false;
+static void setAltHeld(bool on)
+{
+    if (s_altHeld == on) return;
+    s_altHeld = on;
+    const auto tops = QApplication::topLevelWidgets();
+    for (QWidget *t : tops) {
+        if (!t->isVisible()) continue;
+        t->update();
+        const auto kids = t->findChildren<QWidget *>();
+        for (QWidget *k : kids) if (k->isVisible()) k->update();
+    }
+}
+
 bool AdwaitaStyle::eventFilter(QObject *o, QEvent *e)
 {
+    switch (e->type()) {
+    case QEvent::KeyPress:
+    case QEvent::KeyRelease: {
+        auto *k = static_cast<QKeyEvent *>(e);
+        if (k->key() == Qt::Key_Alt && !k->isAutoRepeat()) {
+            // Released Alt keeps the underlines in a menu opened with Alt+letter until it closes.
+            if (e->type() == QEvent::KeyPress) setAltHeld(true);
+            else if (!QApplication::activePopupWidget()) setAltHeld(false);
+        }
+        break;
+    }
+    case QEvent::Hide:
+        if (s_altHeld && o->isWidgetType() && static_cast<QWidget *>(o)->isWindow()
+            && static_cast<QWidget *>(o)->windowType() == Qt::Popup
+            && !(QGuiApplication::queryKeyboardModifiers() & Qt::AltModifier))
+            QMetaObject::invokeMethod(qApp, [] { if (!QApplication::activePopupWidget()) setAltHeld(false); }, Qt::QueuedConnection);
+        break;
+    case QEvent::MouseButtonPress:
+    case QEvent::ApplicationStateChange:
+        if (s_altHeld && !(QGuiApplication::queryKeyboardModifiers() & Qt::AltModifier)) setAltHeld(false);
+        break;
+    default: break;
+    }
+
     if (o == qApp && e->type() == QEvent::ApplicationPaletteChange && !s_applyingPalette
         && QApplication::palette() != standardPalette()) {
         const QPalette p = standardPalette();
@@ -437,6 +479,7 @@ int AdwaitaStyle::styleHint(StyleHint sh, const QStyleOption *opt, const QWidget
     switch (sh) {
     case SH_Button_FocusPolicy: return Qt::StrongFocus;
     case SH_EtchDisabledText: return 0;
+    case SH_UnderlineShortcut: return s_altHeld;
     case SH_Widget_Animate: return AdwaitaSettings::instance()->animationsEnabled();
     case SH_ComboBox_Popup: return 0;
     default: break;

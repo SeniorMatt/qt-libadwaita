@@ -196,8 +196,41 @@ bool AdwaitaStyle::views_drawControl(ControlElement ce, const QStyleOption *opt,
 }
 
 bool AdwaitaStyle::views_drawComplexControl(ComplexControl, const QStyleOptionComplex *, QPainter *, const QWidget *) const { return false; }
-bool AdwaitaStyle::views_subElementRect(SubElement se, const QStyleOption *opt, const QWidget *, QRect &out) const
+// Inner padding at the ends of a rounded row so icons and text sit inside the pill, not on its edge
+// (libadwaita rows: 6px pill inset + ~9px content padding). Returns {left, right}.
+static QPair<int, int> rowEndPadding(const QStyleOptionViewItem *v, const QWidget *w)
 {
+    if (inComboPopup(w)) return {0, 0};
+    const bool columns = qobject_cast<const QTreeView *>(w) || qobject_cast<const QTableView *>(w);
+    if (qobject_cast<const QTableView *>(w)) return {0, 0};
+    if (columns) {
+        const auto pos = v->viewItemPosition;
+        if (pos == QStyleOptionViewItem::Invalid) return {0, 0};
+        const bool left = pos == QStyleOptionViewItem::Beginning || pos == QStyleOptionViewItem::OnlyOne;
+        const bool right = pos == QStyleOptionViewItem::End || pos == QStyleOptionViewItem::OnlyOne;
+        return {left ? 6 : 0, right ? 6 : 0};
+    }
+    if (v->decorationPosition == QStyleOptionViewItem::Top || v->decorationPosition == QStyleOptionViewItem::Bottom)
+        return {0, 0};  // icon views: content is centred
+    const int inset = v->rect.width() > 120 ? 6 : 2;  // must match the pill inset in PE_PanelItemViewItem
+    return {inset + 6, inset + 6};
+}
+
+bool AdwaitaStyle::views_subElementRect(SubElement se, const QStyleOption *opt, const QWidget *w, QRect &out) const
+{
+    if (se == SE_ItemViewItemCheckIndicator || se == SE_ItemViewItemDecoration || se == SE_ItemViewItemText
+        || se == SE_ItemViewItemFocusRect) {
+        auto *v = qstyleoption_cast<const QStyleOptionViewItem *>(opt);
+        if (!v) return false;
+        const auto pad = rowEndPadding(v, w);
+        if (!pad.first && !pad.second) return false;
+        QStyleOptionViewItem o = *v;
+        const bool rtl = o.direction == Qt::RightToLeft;
+        o.rect.adjust(rtl ? pad.second : pad.first, 0, rtl ? -pad.first : -pad.second, 0);
+        if (o.rect.width() < 1) return false;
+        out = QCommonStyle::subElementRect(se, &o, w);
+        return true;
+    }
     if (se == SE_HeaderArrow) {
         const QRect r = opt->rect;
         out = QRect(r.right() - 9 - 10, r.center().y() - 5, 10, 10);
@@ -230,7 +263,12 @@ bool AdwaitaStyle::views_sizeFromContents(ContentsType ct, const QStyleOption *o
     if (ct == CT_ItemViewItem) {
         QSize s = QCommonStyle::sizeFromContents(ct, opt, sz, w);
         const qreal k = inComboPopup(w) ? 1.0 : adwSpacingScale();  // user spacing option makes rows taller/shorter
-        out = QSize(s.width(), qMax(s.height() + qRound(6 * k), inComboPopup(w) ? kRowMin : qRound(34 * qMin<qreal>(k, 1.0) + 12 * qMax<qreal>(k - 1, 0))));
+        int padW = 0;
+        if (auto *v = qstyleoption_cast<const QStyleOptionViewItem *>(opt)) {
+            const auto pad = rowEndPadding(v, w);
+            padW = pad.first + pad.second;
+        }
+        out = QSize(s.width() + padW, qMax(s.height() + qRound(6 * k), inComboPopup(w) ? kRowMin : qRound(34 * qMin<qreal>(k, 1.0) + 12 * qMax<qreal>(k - 1, 0))));
         return true;
     }
     return false;
