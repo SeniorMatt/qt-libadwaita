@@ -124,16 +124,25 @@ bool AdwaitaStyle::isSwitch(const QWidget *w)
 
 AdwaitaStyle::ButtonKind AdwaitaStyle::buttonKind(const QWidget *w, const QStyleOption *opt)
 {
-    const QString c = adwClass(w);
-    if (c == "suggested-action") return Suggested;
-    if (c == "destructive-action") return Destructive;
-    if (c == "pill") return Pill;
-    if (c == "flat") return Flat;
+    if (hasClass(w, "suggested-action")) return Suggested;  // classes are space-separated, like CSS
+    if (hasClass(w, "destructive-action")) return Destructive;
+    if (hasClass(w, "pill")) return Pill;
+    if (hasClass(w, "flat")) return Flat;
     if (auto *b = qstyleoption_cast<const QStyleOptionButton *>(opt)) {
         if (b->features & QStyleOptionButton::DefaultButton) return Suggested;
         if (b->features & QStyleOptionButton::Flat) return Flat;
     }
     return Normal;
+}
+
+bool AdwaitaStyle::hasClass(const QWidget *w, const char *cls)
+{
+    return adwClass(w).split(' ', Qt::SkipEmptyParts).contains(QLatin1String(cls));
+}
+
+bool AdwaitaStyle::isPillButton(const QWidget *w)
+{
+    return hasClass(w, "pill");
 }
 
 bool AdwaitaStyle::focusVisible(const QStyleOption *opt, const QWidget *w)
@@ -216,6 +225,7 @@ void AdwaitaStyle::drawControl(ControlElement ce, const QStyleOption *opt, QPain
     switch (ce) {
     case CE_PushButtonBevel: if (drawButtonBevel(opt, p, w)) return; break;
     case CE_PushButtonLabel: if (drawButtonLabel(opt, p, w)) return; break;
+    case CE_ComboBoxLabel: if (drawComboLabel(opt, p, w)) return; break;
     default: break;
     }
     QCommonStyle::drawControl(ce, opt, p, w);
@@ -261,12 +271,13 @@ QRect AdwaitaStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex 
     }
     if (cc == CC_ComboBox) {
         const QRect r = opt->rect;
-        const int arrowW = 28;
+        const bool ed = qstyleoption_cast<const QStyleOptionComboBox *>(opt) && qstyleoption_cast<const QStyleOptionComboBox *>(opt)->editable;
+        const int arrowW = 26;  // 16px icon + 10px padding
+        const int lp = ed ? 1 : 10;
         switch (sc) {
         case SC_ComboBoxFrame: return r;
         case SC_ComboBoxArrow: return QRect(r.right() - arrowW + 1, r.top(), arrowW, r.height());
-        case SC_ComboBoxEditField: return QRect(r.left() + int(m_tokens.button_pad_x), r.top() + 1,
-                                                r.width() - arrowW - int(m_tokens.button_pad_x), r.height() - 2);
+        case SC_ComboBoxEditField: return QRect(r.left() + lp, r.top() + 1, r.width() - arrowW - lp - 6, r.height() - 2);
         case SC_ComboBoxListBoxPopup: return r;
         default: break;
         }
@@ -308,19 +319,30 @@ QSize AdwaitaStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt, c
     const AdwaitaTokens &t = m_tokens;
     switch (ct) {
     case CT_PushButton: {
-        const bool pill = buttonKind(w, opt) == Pill;
-        const int padX = pill ? 16 : int(t.button_pad_x);
+        const bool pill = isPillButton(w);
+        const int padX = pill ? 32 : int(t.button_pad_x);  // .pill: padding 10px 32px
         int extra = 0;  // the label is drawn bold
         if (auto *b = qstyleoption_cast<const QStyleOptionButton *>(opt)) if (!b->text.isEmpty()) {
             QFont bf = w ? w->font() : QApplication::font(); bf.setBold(true);
             extra = QFontMetrics(bf).horizontalAdvance(b->text) - b->fontMetrics.horizontalAdvance(b->text);
         }
-        return QSize(qMax(sz.width() + extra + 2 * padX, int(t.button_min_height)), qMax(sz.height() + 10, int(t.button_min_height)));
+        return QSize(qMax(sz.width() + extra + 2 * padX, int(t.button_min_height)),
+                     pill ? qMax(sz.height() + 20, 44) : qMax(sz.height() + 10, int(t.button_min_height)));
     }
     case CT_LineEdit:
         return QSize(sz.width() + 2 * int(t.entry_pad_x), qMax(sz.height(), int(t.entry_min_height)));
-    case CT_ComboBox:
+    case CT_ComboBox: {
+        auto *cb = qobject_cast<const QComboBox *>(w);
+        if (cb && !cb->isEditable()) {  // GtkDropDown: padding 10, bold label, 6 gap, 16px chevron
+            QFont bf = cb->font(); bf.setBold(true);
+            const QFontMetrics fm(bf);
+            int tw = 0;
+            for (int i = 0; i < cb->count(); ++i) tw = qMax(tw, fm.horizontalAdvance(cb->itemText(i)));
+            if (!cb->itemIcon(0).isNull() && cb->count()) tw += cb->iconSize().width() + 6;
+            return QSize(tw + 44, qMax(sz.height() + 10, int(t.button_min_height)));
+        }
         return QSize(sz.width() + int(t.button_pad_x) + 28, qMax(sz.height() + 10, int(t.button_min_height)));
+    }
     default: break;
     }
     return QCommonStyle::sizeFromContents(ct, opt, sz, w);

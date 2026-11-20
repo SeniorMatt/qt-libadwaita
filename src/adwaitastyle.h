@@ -53,6 +53,9 @@ public:
     static ButtonKind buttonKind(const QWidget *w, const QStyleOption *opt);
     static bool isSwitch(const QWidget *w);
     static QString adwClass(const QWidget *w);
+    bool drawComboLabel(const QStyleOption *opt, QPainter *p, const QWidget *w) const;
+    static bool hasClass(const QWidget *w, const char *cls);
+    static bool isPillButton(const QWidget *w);
     static bool focusVisible(const QStyleOption *opt, const QWidget *w);
     QColor withDisabled(const QColor &c, const QStyleOption *opt) const;
     void drawFocusRing(QPainter *p, const QRectF &r, qreal radius) const;  // ring drawn on r's outline

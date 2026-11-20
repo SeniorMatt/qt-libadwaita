@@ -22,7 +22,7 @@ bool AdwaitaStyle::drawEntryPrimitive(PrimitiveElement pe, const QStyleOption *o
     p->drawRoundedRect(r, t.radius, t.radius);
     if (t.variant.startsWith("hc-")) {
         p->setBrush(Qt::NoBrush);
-        p->setPen(QPen(t.border, 1));
+        p->setPen(QPen(withDisabled(t.border, opt), 1));
         p->drawRoundedRect(r.adjusted(.5, .5, -.5, -.5), t.radius, t.radius);
     }
     p->restore();

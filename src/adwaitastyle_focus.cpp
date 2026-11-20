@@ -18,7 +18,8 @@ QColor AdwaitaStyle::buttonFill(ButtonKind k, const QStyleOption *opt) const
     QColor base, hov, act;
     switch (k) {
     case Suggested: base = t.accent_bg; hov = over(base, t.accent_fg, 0.10); act = over(base, QColor(0, 0, 6), 0.20); break;
-    case Destructive: base = t.destructive_bg; hov = over(base, t.destructive_fg, 0.10); act = over(base, QColor(0, 0, 6), 0.20); break;
+    case Destructive:  // libadwaita 1.10: not filled; destructive-color text on a 15% / 20% / 35% tint
+        base = withAlphaF(t.destructive_color, 0.15); hov = withAlphaF(t.destructive_color, 0.20); act = withAlphaF(t.destructive_color, 0.35); break;
     case Flat: base = Qt::transparent; hov = withAlphaF(t.window_fg, 0.07); act = withAlphaF(t.window_fg, 0.16); break;
     default: base = t.button_bg; hov = t.button_hover_bg; act = t.button_active_bg; break;
     }

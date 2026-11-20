@@ -93,8 +93,7 @@ QPushButton *btn(const QString &text, const char *cls = nullptr, bool enabled = 
 }
 QPushButton *btn2(const QString &text, const char *c1, const char *c2, bool enabled = true)
 {
-    Q_UNUSED(c2);  // style supports one "adwaita-class" only: combined suggested+pill renders as suggested
-    return btn(text, c1, enabled);
+    return btn(text, (QByteArray(c1) + ' ' + c2).constData(), enabled);  // several space-separated classes
 }
 
 QCheckBox *sw(bool on, bool enabled, const QString &text = {})
