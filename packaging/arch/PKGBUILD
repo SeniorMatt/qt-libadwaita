@@ -1,0 +1,38 @@
+# Maintainer: Senior Matthew <130131083+SeniorMatt@users.noreply.github.com>
+pkgname=qt-libadwaita-git
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Qt 6 and Qt 5 widget style that looks like GNOME libadwaita'
+arch=(x86_64 aarch64)
+url='https://github.com/SeniorMatt/qt-libadwaita'
+license=(GPL-2.0-or-later)
+depends=(qt6-base)
+makedepends=(git cmake qt5-base)
+optdepends=('qt5-base: style for Qt 5 applications'
+            'adwaita-fonts: Adwaita Sans and Mono')
+provides=(qt-libadwaita)
+conflicts=(qt-libadwaita)
+source=("git+$url.git")
+sha256sums=(SKIP)
+
+pkgver() {
+  cd qt-libadwaita
+  printf '%s.r%s.%s' "$(sed -n 's/^project(qt-libadwaita VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)" \
+    "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cmake -S qt-libadwaita -B build-qt6 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib -DQT_MAJOR=6
+  cmake --build build-qt6
+  cmake -S qt-libadwaita -B build-qt5 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=lib -DQT_MAJOR=5 -DADWAITA_PLUGIN_DIR=lib/qt/plugins/styles
+  cmake --build build-qt5
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build-qt6
+  DESTDIR="$pkgdir" cmake --install build-qt5
+  install -Dm644 qt-libadwaita/data/kde-colors/*.colors -t "$pkgdir/usr/share/color-schemes"
+  install -Dm644 qt-libadwaita/COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+}
