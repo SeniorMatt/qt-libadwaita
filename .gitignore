@@ -1,3 +1,5 @@
 __pycache__/
 tests/visual/qt-shots/
 tests/visual/apps/*.png
+build/
+dist/

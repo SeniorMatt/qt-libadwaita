@@ -49,24 +49,19 @@ widgets (see [tests/visual/report/REPORT.md](tests/visual/report/REPORT.md)).
 
 ## Install
 
-### Build from source
-
-Needs CMake, a C++17 compiler and Qt 6 (or Qt 5.15) development packages.
-
 ```sh
-cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local
-cmake --build build -j4
-cmake --install build
+git clone https://github.com/SeniorMatt/qt-libadwaita.git
+cd qt-libadwaita
+./install.sh --enable
 ```
 
-For Qt 5 apps, build a second copy with `-DQT_MAJOR=5`:
+This builds the plugin for Qt 6 (and Qt 5 if available) and installs it into `~/.local`: no root needed. If
+cmake, a compiler or the Qt 6 development packages are missing, the script prints the exact command for your
+distribution. No compiler? Download a prebuilt tarball from the
+[Releases](https://github.com/SeniorMatt/qt-libadwaita/releases) page and run its `./install.sh --enable`.
+Update with `git pull && ./install.sh`, remove with `./install.sh --remove`.
 
-```sh
-cmake -S . -B build-qt5 -DQT_MAJOR=5 -DCMAKE_INSTALL_PREFIX=$HOME/.local
-cmake --build build-qt5 -j4 && cmake --install build-qt5
-```
-
-Details, distro plugin paths and the immutable KDE Linux route: [docs/install.md](docs/install.md).
+Per-distribution packages, Flatpak apps, `--system`, and the immutable KDE Linux route: [docs/install.md](docs/install.md).
 
 ### Turn it on
 

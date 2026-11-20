@@ -4,6 +4,7 @@
 // With --shot every section is grabbed to DIR/<section>@<scale>x.png and the app exits.
 // Scheme, accent and contrast come from ADWAITA_COLOR_SCHEME / ADWAITA_ACCENT / ADWAITA_HIGH_CONTRAST.
 #include <QApplication>
+#include <cstdio>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDir>
@@ -24,6 +25,7 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QStyle>
+#include <QStyleFactory>
 #include <QStyleOption>
 #include <QPainter>
 #include <QGroupBox>
@@ -490,6 +492,14 @@ int main(int argc, char **argv)
     for (int i = 1; i + 1 < argc; ++i)
         if (QByteArray(argv[i]) == "--style") styleName = argv[i + 1];
     QApplication::setStyle(styleName);
+    // setStyle() silently keeps the default style if the plugin was not found: report that (and fail in --shot mode).
+    if (QApplication::style()->objectName().compare(styleName, Qt::CaseInsensitive) != 0) {
+        qWarning("style '%s' was not loaded (got '%s'); available: %s", qPrintable(styleName),
+                 qPrintable(QApplication::style()->objectName()), qPrintable(QStyleFactory::keys().join(", ")));
+        if (!shotDir.isEmpty()) return 3;
+    } else if (!shotDir.isEmpty()) {
+        std::fprintf(stderr, "style loaded: %s\n", qPrintable(styleName));
+    }
 
     if (!shotDir.isEmpty()) {
         QDir().mkpath(shotDir);

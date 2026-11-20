@@ -1,49 +1,91 @@
 # Install
 
-Requires Qt 6 (Widgets, DBus; public API only, no private headers), CMake >= 3.16, a C++17 compiler.
+qt-libadwaita is a style plugin for Qt 6 (6.4 or newer) and Qt 5.15. It installs into your home folder: no root needed.
 
-## Build and install to ~/.local
+## Quick install
+
+From source (needs git, cmake, a C++17 compiler and the Qt 6 development packages, see below):
+
+```sh
+git clone https://github.com/SeniorMatt/qt-libadwaita.git
+cd qt-libadwaita
+./install.sh --enable
+```
+
+The script checks what is installed, tells you the exact command for your distribution if something is missing,
+builds the Qt 6 plugin (and the Qt 5 one if Qt 5 development files exist), and installs the plugin, the KDE colour
+schemes and the Adwaita fonts. `--enable` also makes every Qt app use the style; without it you pick the style
+yourself (see "Turn it on"). Run `./install.sh --help` for all options.
+
+Without a compiler: download `qt-libadwaita-<version>-<arch>.tar.gz` from the
+[Releases](https://github.com/SeniorMatt/qt-libadwaita/releases) page, then
+
+```sh
+tar xf qt-libadwaita-*.tar.gz && cd qt-libadwaita-*/ && ./install.sh --enable
+```
+
+Log out and back in afterwards. To try one app first: `QT_PLUGIN_PATH=~/.local/lib/qt6/plugins QT_STYLE_OVERRIDE=Libadwaita kate`.
+
+Options: `--enable` (switch it on for every Qt app), `--system` (install into the distribution's Qt plugin
+directory with sudo instead of `~/.local`), `--no-fonts`, `--no-qt5`, `--remove`.
+
+## Dependencies per distribution
+
+| Distribution | Command |
+|---|---|
+| Debian, Ubuntu, Mint, Pop!_OS | `sudo apt install build-essential cmake qt6-base-dev` (Qt 5 too: `qtbase5-dev`) |
+| Fedora, RHEL and clones | `sudo dnf install gcc-c++ cmake qt6-qtbase-devel` (Qt 5 too: `qt5-qtbase-devel`) |
+| Arch, Manjaro, EndeavourOS | `sudo pacman -S --needed base-devel cmake qt6-base` (Qt 5 too: `qt5-base`) |
+| openSUSE | `sudo zypper install gcc-c++ cmake qt6-base-devel` (Qt 5 too: `libqt5-qtbase-devel`) |
+| Void | `sudo xbps-install -S base-devel cmake qt6-base-devel` (Qt 5 too: `qt5-devel`) |
+| Alpine | `sudo apk add build-base cmake qt6-qtbase-dev` (Qt 5 too: `qt5-qtbase-dev`) |
+| KDE Linux and other immutable systems | see the last section |
+
+Packaging recipes for Arch (`packaging/arch/PKGBUILD`) and Fedora (`packaging/rpm/qt-libadwaita.spec`) are in the repository.
+
+## Turn it on
+
+The style key is **Libadwaita** (the key "Adwaita" belongs to the old adwaita-qt).
+
+- KDE Plasma: System Settings > Colours & Themes > Application Style: Libadwaita, and Colours: Libadwaita or
+  Libadwaita Dark (KDE apps paint their content from the colour scheme). The installer already put both in place.
+- GNOME and other desktops: run `./install.sh --enable`, or put `QT_STYLE_OVERRIDE=Libadwaita` into
+  `~/.config/environment.d/qt.conf`, or start single apps with `QT_STYLE_OVERRIDE=Libadwaita myapp`.
+- qt6ct / qt5ct: set Style to `Libadwaita` (run apps with `QT_QPA_PLATFORMTHEME=qt6ct`).
+- Flatpak apps: the installer sets a user override so apps can read the plugin from `~/.local`
+  (`flatpak override --user --filesystem=~/.local/lib/qt6/plugins:ro` and `QT_PLUGIN_PATH`); `--enable` adds
+  `QT_STYLE_OVERRIDE=Libadwaita`. Works for apps on the KDE runtime 6.x.
+- Wayland title bars (GNOME and others): install [QAdwaitaDecorations](https://github.com/FedoraQt/QAdwaitaDecorations)
+  and run with `QT_WAYLAND_DECORATION=adwaita`. On Plasma, KWin draws the title bars.
+
+Settings (dark/light, accent, contrast) and testing overrides: see [configuration.md](configuration.md).
+Which desktop font to set to what: see the Fonts section of the [README](../README.md#fonts).
+
+## Update
+
+In your clone: `git pull && ./install.sh`. Files are replaced atomically, so running apps keep working; restart
+them (or log out and back in) to see the new version. With a tarball: unpack the new one and run its `install.sh`.
+
+## Uninstall
+
+`./install.sh --remove` (also `--remove --system` if you used `--system`). It removes the plugins, colour schemes,
+fonts it installed and the environment and Flatpak override entries it added.
+
+## Build by hand
+
 ```sh
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local
 cmake --build build -j4
 cmake --install build
 ```
-This installs `qtlibadwaitastyle.so` into `<prefix>/<libdir>/qt6/plugins/styles` (e.g. `~/.local/lib/qt6/plugins/styles`)
-and `adwaita-gallery` into `~/.local/bin`. Use `-DADWAITA_PLUGIN_DIR=lib/x86_64-linux-gnu/qt6/plugins/styles` for
-another layout relative to the prefix, or an absolute `-DQT_PLUGIN_INSTALL_DIR=/app/lib/plugins/styles`
-(KDE_INSTALL_QTPLUGINDIR style, e.g. for a Flatpak extension; overrides everything else).
+This installs `qtlibadwaitastyle.so` into `<prefix>/<libdir>/qt6/plugins/styles` and `adwaita-gallery` into
+`<prefix>/bin`. Use `-DADWAITA_PLUGIN_DIR=lib/x86_64-linux-gnu/qt6/plugins/styles` for another layout relative to the
+prefix, or an absolute `-DQT_PLUGIN_INSTALL_DIR=/app/lib/plugins/styles` (e.g. for a Flatpak extension; overrides
+everything else). Qt 5: add `-DQT_MAJOR=5` and a separate build directory; the plugin goes to `lib/qt5/plugins/styles`
+and the gallery is named `adwaita-gallery-qt5`. Qt does not search `~/.local` by default:
+`export QT_PLUGIN_PATH=$HOME/.local/lib/qt6/plugins`.
 
-Qt does not search `~/.local` by default, so point it there:
-```sh
-export QT_PLUGIN_PATH=$HOME/.local/lib/qt6/plugins   # add to ~/.profile or ~/.config/environment.d/qt.conf
-```
-
-## Enable
-The style key is **Libadwaita** (the key "Adwaita" belongs to the old adwaita-qt).
-- Per app / session: `QT_STYLE_OVERRIDE=Libadwaita myapp`, or `myapp -style Libadwaita`.
-- Everywhere: put `QT_STYLE_OVERRIDE=Libadwaita` in `~/.config/environment.d/qt.conf`.
-- qt6ct: set Style to `Libadwaita` (run apps with `QT_QPA_PLATFORMTHEME=qt6ct`).
-- KDE: System Settings > Appearance > Application Style > Libadwaita. KDE apps also need the colour scheme, see below. Immutable KDE Linux: see the last section.
-
-Settings (dark/light, accent, contrast) and testing overrides: see [configuration.md](configuration.md).
-
-## Qt 5 build
-
-Same sources, compile-time variant: `cmake -S . -B build-qt5 -DQT_MAJOR=5 -DCMAKE_INSTALL_PREFIX=$HOME/.local && cmake --build build-qt5`.
-Installs `qtlibadwaitastyle.so` into `<prefix>/lib/qt5/plugins/styles` (key "Libadwaita"); the gallery is named `adwaita-gallery-qt5`.
-Use it with Qt 5 apps via `QT_STYLE_OVERRIDE=Libadwaita` (and `QT_PLUGIN_PATH` if not installed in a Qt plugin dir).
-
-## KDE apps: also pick the matching colour scheme
-KDE apps (Dolphin, Kate, Okular...) paint their content areas from the KDE colour scheme, not only from the
-style. Install the schemes and select "Libadwaita" or "Libadwaita Dark" in System Settings > Colours:
-
-    mkdir -p ~/.local/share/color-schemes && cp data/kde-colors/*.colors ~/.local/share/color-schemes/
-
-## Window decorations and font
-- Wayland title bars: install [QAdwaitaDecorations](https://github.com/FedoraQt/QAdwaitaDecorations) and run with
-  `QT_WAYLAND_DECORATION=adwaita`.
-- Font: the current GNOME default is Adwaita Sans (package `adwaita-fonts`). Which desktop font to set to what:
-  see the Fonts section of [README](../README.md#fonts).
+Release tarballs are made with `tools/make_release.sh` (build it on the oldest distribution you want to support).
 
 ## Installing on KDE Linux (immutable)
 

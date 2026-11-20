@@ -1,0 +1,120 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debian 12 (Qt 6.4)
+            image: debian:12
+            deps: apt-get update && apt-get install -y build-essential cmake git ca-certificates qt6-base-dev qtbase5-dev
+          - name: Ubuntu 24.04
+            image: ubuntu:24.04
+            deps: apt-get update && apt-get install -y build-essential cmake git ca-certificates qt6-base-dev qtbase5-dev
+          - name: Fedora
+            image: fedora:latest
+            deps: dnf install -y gcc-c++ cmake git qt6-qtbase-devel qt5-qtbase-devel
+          - name: Arch Linux
+            image: archlinux:latest
+            deps: pacman -Syu --noconfirm --needed base-devel cmake git qt6-base qt5-base
+          - name: openSUSE Tumbleweed
+            image: opensuse/tumbleweed
+            deps: zypper --non-interactive install -y gcc-c++ cmake git tar gzip qt6-base-devel libqt5-qtbase-devel
+    steps:
+      - name: Install dependencies
+        run: ${{ matrix.deps }}
+      - uses: actions/checkout@v4
+
+      - name: Build Qt 6
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j4
+
+      - name: Smoke test Qt 6
+        run: |
+          mkdir -p stage6/styles
+          cp build/qtlibadwaitastyle.so stage6/styles/
+          rc=0
+          QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/stage6 QT_STYLE_OVERRIDE=Libadwaita \
+            build/adwaita-gallery --shot /tmp/shots --scale 1 >/tmp/gallery.log 2>&1 || rc=$?
+          cat /tmp/gallery.log; echo "exit code $rc"
+          test $rc = 0
+          grep -q 'style loaded: Libadwaita' /tmp/gallery.log
+          test "$(ls /tmp/shots/*.png | wc -l)" -ge 10
+
+      - name: Build and smoke test Qt 5
+        run: |
+          if ! cmake -S . -B build-qt5 -DQT_MAJOR=5 -DCMAKE_BUILD_TYPE=Release; then
+            echo "no Qt 5 development files on this distribution, skipping"; exit 0
+          fi
+          cmake --build build-qt5 -j4
+          mkdir -p stage5/styles
+          cp build-qt5/qtlibadwaitastyle.so stage5/styles/
+          QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=$PWD/stage5 QT_STYLE_OVERRIDE=Libadwaita \
+            build-qt5/adwaita-gallery-qt5 --shot /tmp/shots5 --scale 1 2>&1 | tee /tmp/gallery5.log
+          grep -q 'style loaded: Libadwaita' /tmp/gallery5.log
+          test "$(ls /tmp/shots5/*.png | wc -l)" -ge 10
+
+      - name: Check that a missing plugin is detected
+        run: |
+          if QT_QPA_PLATFORM=offscreen QT_PLUGIN_PATH=/nonexistent build/adwaita-gallery --shot /tmp/shots-none; then
+            echo "gallery should have failed without the plugin"; exit 1
+          fi
+
+  install-script:
+    name: install.sh (git checkout mode, Ubuntu 24.04)
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y build-essential cmake git ca-certificates qt6-base-dev curl xz-utils
+      - uses: actions/checkout@v4
+      - name: Missing dependencies give a hint
+        run: |
+          # Hide the compiler for a moment: the script must stop and print the apt command.
+          if env PATH=/nonexistent:/usr/local/bin /bin/sh ./install.sh --no-fonts > /tmp/hint.log 2>&1; then
+            echo "expected a failure"; exit 1
+          fi
+          cat /tmp/hint.log; grep -q 'apt install' /tmp/hint.log
+      - name: Install into a throwaway HOME
+        run: |
+          export HOME=$(mktemp -d)
+          export XDG_CONFIG_HOME=$HOME/.config
+          ./install.sh --enable
+          test -f $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
+          test -f $HOME/.local/share/color-schemes/Libadwaita.colors
+          grep -q QT_STYLE_OVERRIDE=Libadwaita $HOME/.config/environment.d/qt-libadwaita.conf
+          ls $HOME/.local/share/fonts/Adwaita-qt-libadwaita
+          ./install.sh --remove
+          test ! -e $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
+
+  tarball:
+    name: release tarball (Debian 12)
+    runs-on: ubuntu-latest
+    container: debian:12
+    steps:
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y build-essential cmake git ca-certificates curl xz-utils qt6-base-dev qtbase5-dev
+      - uses: actions/checkout@v4
+      - name: Build the tarball
+        run: tools/make_release.sh "$PWD/dist"
+      - name: Install from the tarball without a compiler
+        run: |
+          export HOME=$(mktemp -d)
+          export XDG_CONFIG_HOME=$HOME/.config
+          mkdir /tmp/unpack && tar -C /tmp/unpack -xzf dist/*.tar.gz
+          cd /tmp/unpack/qt-libadwaita-*/
+          test -f qt6/qtlibadwaitastyle.so && test -f qt5/qtlibadwaitastyle.so && test -f fonts/AdwaitaSans-Regular.ttf
+          env PATH=/usr/bin:/bin ./install.sh --enable
+          test -f $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
+          test -f $HOME/.local/lib/qt5/plugins/styles/qtlibadwaitastyle.so
+          ./install.sh --remove
+          test ! -e $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
