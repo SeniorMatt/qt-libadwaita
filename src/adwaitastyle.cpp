@@ -420,6 +420,8 @@ void AdwaitaStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, Q
         }
         break;
     }
+    case PE_FrameStatusBarItem:  // libadwaita has no item frames in a status area
+        return;
     case PE_FrameFocusRect:
         // Controls draw their own ring; the generic dotted rect is suppressed.
         return;
@@ -471,7 +473,8 @@ QRect AdwaitaStyle::subElementRect(SubElement se, const QStyleOption *opt, const
     case SE_PushButtonContents:
     case SE_PushButtonFocusRect:
         return opt->rect;
-    case SE_LineEditContents:
+    case SE_LineEditContents:  // the embedded field of a spin box gets its padding from the spin box itself
+        if (w && w->parentWidget() && w->parentWidget()->inherits("QAbstractSpinBox")) return opt->rect;
         return opt->rect.adjusted(int(t.entry_pad_x), 0, -int(t.entry_pad_x), 0);
     case SE_CheckBoxFocusRect:
     case SE_RadioButtonFocusRect:
@@ -513,7 +516,9 @@ int AdwaitaStyle::pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWi
     }
     const AdwaitaTokens &t = m_tokens;
     switch (pm) {
-    case PM_DefaultFrameWidth: return qobject_cast<const QLineEdit *>(w) ? 0 : QCommonStyle::pixelMetric(pm, opt, w);
+    // 1px frames: with Qt's default of 2 the viewport sits one pixel inside the border line and the gap (window
+    // colour) reads as a second, double outline around lists, tables and text edits.
+    case PM_DefaultFrameWidth: return qobject_cast<const QLineEdit *>(w) ? 0 : 1;
     // Layout gaps follow the libadwaita 6px grid (6 between controls, 12 window margins), times the user's spacing.
     case PM_LayoutHorizontalSpacing:
     case PM_LayoutVerticalSpacing: return qRound(6 * adwSpacingScale());
