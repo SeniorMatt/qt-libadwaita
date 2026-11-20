@@ -13,7 +13,7 @@ bool AdwaitaStyle::drawButtonBevel(const QStyleOption *opt, QPainter *p, const Q
     p->save();
     p->setRenderHint(QPainter::Antialiasing);
     p->setPen(Qt::NoPen);
-    p->setBrush(buttonFill(k, opt));
+    p->setBrush(buttonFill(k, opt, w));
     p->drawRoundedRect(r, rad, rad);
     // high contrast: inset 1px border in currentColor at 50%; suggested has none (same colour as its fill),
     // flat only while hovered/pressed; destructive uses its red text colour.
@@ -26,7 +26,7 @@ bool AdwaitaStyle::drawButtonBevel(const QStyleOption *opt, QPainter *p, const Q
         p->drawRoundedRect(r.adjusted(.5, .5, -.5, -.5), rad, rad);
     }
     p->restore();
-    if (focusVisible(opt, w)) drawFocusRing(p, r, rad);
+    drawFocus(p, r, rad, focusVisible(opt, w), w);
     return true;
 }
 
@@ -56,7 +56,7 @@ bool AdwaitaStyle::drawComboBox(const QStyleOptionComplex *opt, QPainter *p, con
     p->save();
     p->setRenderHint(QPainter::Antialiasing);
     p->setPen(Qt::NoPen);
-    p->setBrush(buttonFill(Normal, &o));
+    p->setBrush(buttonFill(Normal, &o, w));
     p->drawRoundedRect(r, t.radius, t.radius);
     if (t.variant.startsWith("hc-")) {
         p->setBrush(Qt::NoBrush);
@@ -71,7 +71,7 @@ bool AdwaitaStyle::drawComboBox(const QStyleOptionComplex *opt, QPainter *p, con
     p->setPen(QPen(fg, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     p->drawPolyline(QPolygonF({c + QPointF(-4.5, -1.5), c + QPointF(0, 3), c + QPointF(4.5, -1.5)}));
     p->restore();
-    if (focusVisible(opt, w)) drawFocusRing(p, r, t.radius);
+    drawFocus(p, r, t.radius, focusVisible(opt, w), w);
     return true;
 }
 

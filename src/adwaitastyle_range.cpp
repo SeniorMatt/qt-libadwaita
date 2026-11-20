@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Widget family: sliders, progress bars, spin boxes (libadwaita 1.10 look)
 #include "adwaitastyle.h"
+#include "adwaitaanimations.h"
 #include "adwaitasettings.h"
 
 #include <QAbstractSpinBox>
@@ -166,7 +167,7 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
         p->setPen(Qt::NoPen);
         p->setOpacity(enabled ? 1.0 : t.disabled_opacity);
         // trough
-        p->setBrush(alphaOf(t.window_fg, grooveHover ? t.scale_trough_hover_op : t.scale_trough_op));
+        p->setBrush(AdwAnim::color(w, AdwAnim::key(AdwAnim::Trough), alphaOf(t.window_fg, grooveHover ? t.scale_trough_hover_op : t.scale_trough_op)));
         p->drawRoundedRect(QRectF(g), rad, rad);
         if (hc) {
             p->setBrush(Qt::NoBrush);
@@ -188,7 +189,8 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
         p->setClipPath(clip);
         p->setBrush(t.accent_bg);
         p->drawRect(fill);
-        if (hover || active) { p->setBrush(alphaOf(t.window_fg, 0.10)); p->drawRect(fill); }
+        const QColor hl = AdwAnim::color(w, AdwAnim::key(AdwAnim::Fill), (hover || active) ? alphaOf(t.window_fg, 0.10) : QColor(Qt::transparent));
+        if (hl.alpha() > 0) { p->setBrush(hl); p->drawRect(fill); }
         p->restore();
         // tick marks
         if (s->tickPosition != QSlider::NoTicks && s->tickInterval > 0) {
@@ -219,7 +221,7 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
             p->drawEllipse(kr.adjusted(-1, -1, 1, 1));
         }
         const QColor white(255, 255, 255);
-        p->setBrush((hover || active) ? white : mixOver(white, t.view_bg, 0.8));
+        p->setBrush(AdwAnim::color(w, AdwAnim::key(AdwAnim::Knob), (hover || active) ? white : mixOver(white, t.view_bg, 0.8)));
         p->drawEllipse(kr);
         p->restore();
         if (focusVisible(opt, w)) {
@@ -259,12 +261,14 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
                 const bool on = (sb->stepEnabled & (b.isUp ? QAbstractSpinBox::StepUpEnabled : QAbstractSpinBox::StepDownEnabled)) != 0;
                 const bool hov = enabled && (opt->state & State_MouseOver) && (opt->activeSubControls & sc);
                 const bool prs = enabled && (opt->state & State_Sunken) && (opt->activeSubControls & sc);
-                if (hov || prs) {  // hover/active overlay, outer corners keep the entry radius
+                const QColor ov = AdwAnim::color(w, AdwAnim::key(AdwAnim::Fill, b.isUp ? 1 : 2),
+                                                 (hov || prs) ? alphaOf(t.window_fg, prs ? 0.16 : 0.07) : QColor(Qt::transparent));
+                if (ov.alpha() > 0) {  // hover/active overlay (200 ms), outer corners keep the entry radius
                     QPainterPath path;
                     path.addRoundedRect(r, t.radius, t.radius);
                     QPainterPath cell;
                     cell.addRect(b.r);
-                    p->setBrush(alphaOf(t.window_fg, prs ? 0.16 : 0.07));
+                    p->setBrush(ov);
                     p->drawPath(path.intersected(cell));
                 }
                 // 1px separator on the inner (left) edge
@@ -281,7 +285,7 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
             }
         }
         p->restore();
-        if (opt->state & State_HasFocus) drawFocusRing(p, r, t.radius);
+        drawFocus(p, r, t.radius, opt->state & State_HasFocus, w);
         return true;
     }
     return false;

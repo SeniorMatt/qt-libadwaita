@@ -27,6 +27,6 @@ bool AdwaitaStyle::drawEntryPrimitive(PrimitiveElement pe, const QStyleOption *o
     }
     p->restore();
     // Entries show the ring on any focus (libadwaita: text fields always get it), not only keyboard focus.
-    if (opt->state & State_HasFocus) drawFocusRing(p, r, t.radius);
+    drawFocus(p, r, t.radius, opt->state & State_HasFocus, w);
     return true;
 }

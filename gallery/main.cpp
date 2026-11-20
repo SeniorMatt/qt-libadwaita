@@ -470,6 +470,8 @@ int main(int argc, char **argv)
         if (a == "--shot" && i + 1 < argc) shotDir = argv[i + 1];
     }
     if (scale != "1") qputenv("QT_SCALE_FACTOR", scale.toUtf8());
+    // Shots are static end states: no widget may be caught half-way through a style transition.
+    if (!shotDir.isEmpty() && !qEnvironmentVariableIsSet("ADWAITA_ANIMATIONS")) qputenv("ADWAITA_ANIMATIONS", "0");
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);

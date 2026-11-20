@@ -47,6 +47,7 @@ endif()
 
 add_library(adwaita MODULE
     src/adwaitasettings.cpp src/adwaitasettings.h
+    src/adwaitaanimations.cpp src/adwaitaanimations.h
     src/adwaitatokens.cpp src/adwaitatokens.h src/adwaitatokens_data.h
     src/adwaitastyle.cpp src/adwaitastyle.h
     src/adwaitastyle_buttons.cpp

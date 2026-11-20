@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Widget family: tab bars, tab widgets, tool bars, tool buttons, group boxes, frames, splitters
 #include "adwaitastyle.h"
+#include "adwaitaanimations.h"
 
 #include <QAbstractScrollArea>
 #include <QApplication>
@@ -50,6 +51,12 @@ QColor listRing(const AdwaitaTokens &t)
     if (t.variant == "hc-light") return QColor(0x90, 0x90, 0x93);
     if (t.variant == "hc-dark") return QColor(0x8c, 0x8c, 0x8e);
     return isDark(t) ? QColor(0x20, 0x20, 0x24) : QColor(0xe4, 0xe4, 0xe5);
+}
+
+quint32 tabKey(const QWidget *w, const QStyleOption *opt)
+{
+    auto *tb = qobject_cast<const QTabBar *>(w);
+    return tb ? quint32(tb->tabAt(opt->rect.center()) + 1) : 0;
 }
 
 bool horizontal(QTabBar::Shape s) { return s == QTabBar::RoundedNorth || s == QTabBar::RoundedSouth || s == QTabBar::TriangularNorth || s == QTabBar::TriangularSouth; }
@@ -204,9 +211,12 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         if (down) lv = sel ? 1.5 : 1.2;
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
-        if (lv > 0) {
+        // 150 ms ease-in-out between the level tints (hover / selected / pressed)
+        const QColor tf = AdwAnim::color(w, AdwAnim::key(AdwAnim::Fill, tabKey(w, opt)), lv > 0 ? tabFill(t, lv) : QColor(Qt::transparent),
+                                         AdwAnim::EaseInOut, 150);
+        if (tf.alpha() > 0) {
             p->setPen(Qt::NoPen);
-            p->setBrush(tabFill(t, lv));
+            p->setBrush(tf);
             p->drawRoundedRect(r, 9, 9);
             if (isHc(t) && sel) {
                 p->setBrush(Qt::NoBrush);
@@ -215,7 +225,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
             }
         }
         p->restore();
-        if (focusVisible(opt, w) && (tab->state & State_Selected)) drawFocusRing(p, r, 9);
+        drawFocus(p, r, 9, focusVisible(opt, w) && (tab->state & State_Selected), w, tabKey(w, opt));
         return true;
     }
     case CE_TabBarTabLabel: {
@@ -337,18 +347,18 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
             const QRect mr = subControlRect(CC_ToolButton, opt, SC_ToolButtonMenu, w);
             mainOpt.state &= ~State_Sunken;
             if (tb->activeSubControls & SC_ToolButton) mainOpt.state |= (tb->state & State_Sunken);
-            p->setBrush(buttonFill(k, &mainOpt));
+            p->setBrush(buttonFill(k, &mainOpt, w, 0));
             p->drawRoundedRect(r, rad, rad);
             QStyleOption menuOpt = bo;
             if (tb->activeSubControls & SC_ToolButtonMenu) menuOpt.state |= State_Sunken; else menuOpt.state &= ~State_Sunken;
-            p->setBrush(buttonFill(k, &menuOpt));
+            p->setBrush(buttonFill(k, &menuOpt, w, 1));
             p->drawRoundedRect(QRectF(mr).adjusted(0, 0, 0, 0), rad, rad);
             p->fillRect(QRect(mr.left(), mr.top() + 6, 1, mr.height() - 12), t.border);
         } else if (circ && !(tb->state & (State_MouseOver | State_Sunken))) {
-            p->setBrush(tabFill(t, 0.8));  // window-control circle: always filled
+            p->setBrush(AdwAnim::color(w, AdwAnim::key(AdwAnim::Fill, 0), tabFill(t, 0.8)));  // window-control circle: always filled
             p->drawRoundedRect(r, rad, rad);
         } else {
-            p->setBrush(buttonFill(k, &bo));
+            p->setBrush(buttonFill(k, &bo, w, 0));
             p->drawRoundedRect(r, rad, rad);
         }
         if (t.variant.startsWith("hc-") && k != Flat) {
@@ -380,7 +390,7 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
             p->drawPolyline(QPolygonF({c2 + QPointF(-3.5, -1.5), c2 + QPointF(0, 2), c2 + QPointF(3.5, -1.5)}));
             p->restore();
         }
-        if (focusVisible(opt, w)) drawFocusRing(p, r, rad);
+        drawFocus(p, r, rad, focusVisible(opt, w), w);
         return true;
     }
     if (cc == CC_GroupBox) {

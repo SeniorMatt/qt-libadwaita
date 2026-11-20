@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Widget family: menus, menu bars, combo popups, tooltips (libadwaita popover.menu / tooltip, see docs/development/tokens.md sec. 5)
 #include "adwaitastyle.h"
+#include "adwaitaanimations.h"
 #include <QWindow>
 
 #include <QAbstractItemView>
@@ -428,9 +429,12 @@ bool AdwaitaStyle::menus_drawControl(ControlElement ce, const QStyleOption *opt,
         p->setRenderHint(QPainter::Antialiasing);
         p->fillRect(opt->rect, t.window_bg);
         const bool enabled = mi->state & State_Enabled;
-        if ((mi->state & (State_Selected | State_Sunken)) && enabled) {
+        const QColor bf = AdwAnim::color(w, AdwAnim::key(AdwAnim::Fill, quint32(opt->rect.left())),
+                                         ((mi->state & (State_Selected | State_Sunken)) && enabled)
+                                             ? alpha(t.window_fg, (mi->state & State_Sunken) ? 0.16 : 0.10) : QColor(Qt::transparent));
+        if (bf.alpha() > 0) {
             p->setPen(Qt::NoPen);
-            p->setBrush(alpha(t.window_fg, (mi->state & State_Sunken) ? 0.16 : 0.10));
+            p->setBrush(bf);
             p->drawRoundedRect(QRectF(opt->rect).adjusted(0, 1, 0, -1), t.radius, t.radius);
         }
         int flags = Qt::AlignCenter | Qt::TextShowMnemonic | Qt::TextDontClip | Qt::TextSingleLine;

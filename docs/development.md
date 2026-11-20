@@ -15,6 +15,9 @@ To try a build without installing, point Qt at it:
 - `src/adwaitastyle.cpp/.h`: the QStyle class, shared helpers and dispatch.
 - `src/adwaitastyle_<family>.cpp`: one file per widget family: `buttons`, `checks`, `entries`, `focus`, `menus`,
   `range` (sliders, progress), `scroll`, `tabs`, `views` (lists, trees, tables, headers).
+- `src/adwaitaanimations.*`: the shared transition engine (hover/press/focus fades, 16 ms timer only while something moves;
+  `ADWAITA_ANIMATIONS=0`, GNOME enable-animations or KDE AnimationDurationFactor=0 turn it off). Paint code asks
+  `AdwAnim::color/value(widget, key, target)` for the displayed value; no Q_OBJECT classes, so no moc needed.
 - `src/adwaitasettings.*`: reads portal / KDE / env settings (scheme, accent, contrast, animations, spacing, font).
 - `src/adwaitatokens.*`: colour and metric tokens; `adwaitatokens_data.h` is generated (see below).
 - `src/adwaitastyleplugin.*`, `src/adwaita.json`: the plugin entry point and its key ("Libadwaita").
