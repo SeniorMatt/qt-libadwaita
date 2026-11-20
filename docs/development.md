@@ -21,11 +21,15 @@ To try a build without installing, point Qt at it:
 - `gallery/main.cpp`: the widget gallery app (`adwaita-gallery`).
 
 ## Design tokens
-`data/adwaita-1.10.json` is the machine source for colours and metrics measured from libadwaita 1.10.
-`python3 tools/gen_tokens.py` regenerates `src/adwaitatokens_data.h` from it (CMake does this when the JSON changes).
+`data/current` names the active token file (`data/adwaita-1.10.json`, the machine source for colours and metrics measured from
+libadwaita 1.10). CMake, `tools/gen_tokens.py` and `tools/gen_kde_colors.py` all read it, so switching version is one step.
+`python3 tools/gen_tokens.py` regenerates `src/adwaitatokens_data.h` (CMake does this when the JSON changes).
 `python3 tools/gen_kde_colors.py` writes the KDE colour schemes in `data/kde-colors/`. Human-readable token
 reference: [development/tokens.md](development/tokens.md). Background and decisions:
 [development/research.md](development/research.md).
+
+When GNOME releases a new libadwaita: `tools/update_libadwaita.py <tag> --apply`, see
+[updating-libadwaita.md](updating-libadwaita.md).
 
 ## Gallery and screenshots
 ```sh
