@@ -71,11 +71,8 @@ Per-distribution packages, Flatpak apps, `--system`, and the immutable KDE Linux
 | One app | `QT_STYLE_OVERRIDE=Libadwaita myapp` or `myapp -style Libadwaita` |
 | Whole session | `QT_STYLE_OVERRIDE=Libadwaita` in `~/.config/environment.d/qt.conf` |
 
-KDE apps also need the matching colour scheme, because they paint their content areas from it:
-
-```sh
-mkdir -p ~/.local/share/color-schemes && cp data/kde-colors/*.colors ~/.local/share/color-schemes/
-```
+KDE apps paint their content areas from the KDE colour scheme, so pick **Libadwaita** or **Libadwaita Dark**
+in Colours as well (`install.sh` installs both).
 
 ## Fonts
 
