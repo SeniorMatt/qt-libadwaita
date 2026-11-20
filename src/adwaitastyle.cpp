@@ -324,7 +324,7 @@ public:
     QString iconName() const { return m_src.name(); }
     QString iconName() { return m_src.name(); }
     QPixmap pixmap(const QSize &size, QIcon::Mode mode, QIcon::State state) override { return scaledPixmap(size, mode, state, 1.0); }
-    QPixmap scaledPixmap(const QSize &size, QIcon::Mode mode, QIcon::State state, qreal scale) override
+    QPixmap scaledPixmap(const QSize &size, QIcon::Mode mode, QIcon::State state, qreal scale)
     {
         QColor c = m_fg;
         if (mode == QIcon::Disabled) c.setAlphaF(c.alphaF() * m_dis);
