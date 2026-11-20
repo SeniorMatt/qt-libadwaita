@@ -304,6 +304,9 @@ void AdwaitaStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, Q
 #undef X
     const AdwaitaTokens &t = m_tokens;
     switch (pe) {
+    case PE_PanelButtonCommand:  // KIO breadcrumbs and custom buttons: QCommonStyle paints an opaque square
+        if (drawButtonBevel(opt, p, w)) return;
+        break;
     case PE_IndicatorArrowUp:
     case PE_IndicatorArrowDown:
     case PE_IndicatorArrowLeft:

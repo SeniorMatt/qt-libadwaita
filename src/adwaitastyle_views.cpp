@@ -149,6 +149,16 @@ bool AdwaitaStyle::views_drawControl(ControlElement ce, const QStyleOption *opt,
 {
     const AdwaitaTokens &t = m_tokens;
     switch (ce) {
+    case CE_RubberBand: {
+        // libadwaita: rubberband { border: 1px solid accent_color; background-color: alpha(accent_color, .2) }
+        p->save();
+        p->setRenderHint(QPainter::Antialiasing);
+        p->setPen(QPen(t.accent_color, 1));
+        p->setBrush(alpha(t.accent_color, 0.2));
+        p->drawRoundedRect(QRectF(opt->rect).adjusted(.5, .5, -.5, -.5), 3, 3);
+        p->restore();
+        return true;
+    }
     case CE_ItemViewItem: {
         auto *v = qstyleoption_cast<const QStyleOptionViewItem *>(opt);
         if (!v) return false;
@@ -293,6 +303,7 @@ bool AdwaitaStyle::views_styleHint(StyleHint sh, const QStyleOption *, const QWi
 {
     switch (sh) {
     case SH_ItemView_ShowDecorationSelected: out = 1; return true;
+    case SH_RubberBand_Mask: out = 0; return true;  // filled band, not QCommonStyle's hollow outline
     case SH_ItemView_ChangeHighlightOnFocus: out = 0; return true;
     case SH_ItemView_PaintAlternatingRowColorsForEmptyArea: out = 0; return true;
     case SH_Table_GridLineColor: out = int(m_tokens.border.rgba()); return true;
