@@ -7,6 +7,7 @@ option(ADWAITA_BUILD_GALLERY "Build the adwaita-gallery widget gallery" ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
@@ -59,6 +60,7 @@ add_library(adwaita MODULE
     src/adwaitastyle_tabs.cpp
     src/adwaitastyle_views.cpp
     src/adwaitastyleplugin.cpp src/adwaitastyleplugin.h
+    data/kde-colors/kdecolors.qrc
     ${TOKENS_DATA})
 # Plugin key is "Libadwaita" (the old adwaita-qt already owns "Adwaita"); file name qtlibadwaitastyle.so (not libadwaita.so, to avoid confusion with GNOME libadwaita).
 set_target_properties(adwaita PROPERTIES PREFIX "" OUTPUT_NAME "qtlibadwaitastyle")

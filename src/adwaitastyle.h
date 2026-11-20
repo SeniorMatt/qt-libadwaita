@@ -98,5 +98,6 @@ private slots:
 
 private:
     void reload();
+    void syncKdeColorScheme() const;
     AdwaitaTokens m_tokens;
 };
