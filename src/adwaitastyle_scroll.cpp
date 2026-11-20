@@ -34,6 +34,7 @@ class ScrollAnim : public QObject
 public:
     explicit ScrollAnim(QScrollBar *b) : QObject(b), m_bar(b)
     {
+        setObjectName(QStringLiteral("adw-scrollanim"));
         b->setProperty(kExpand, 0.0);
         b->setProperty(kFade, 1.0);
         m_expand.setDuration(200);
@@ -220,7 +221,7 @@ void AdwaitaStyle::scroll_polish(QWidget *w)
     // false then (no parent yet). Our slider is translucent over the content: without this, each repaint (hover,
     // fade) piles alpha on stale pixels and an idle bar turns solid white and never fades away.
     b->setAttribute(Qt::WA_OpaquePaintEvent, false);
-    if (!b->findChild<ScrollAnim *>(QString(), Qt::FindDirectChildrenOnly))
+    if (!b->findChild<QObject *>(QStringLiteral("adw-scrollanim"), Qt::FindDirectChildrenOnly))
         new ScrollAnim(b);
 }
 
@@ -228,6 +229,6 @@ void AdwaitaStyle::scroll_unpolish(QWidget *w)
 {
     auto *b = qobject_cast<QScrollBar *>(w);
     if (!b) return;
-    delete b->findChild<ScrollAnim *>(QString(), Qt::FindDirectChildrenOnly);
+    delete b->findChild<QObject *>(QStringLiteral("adw-scrollanim"), Qt::FindDirectChildrenOnly);
     b->setAttribute(Qt::WA_Hover, false);
 }

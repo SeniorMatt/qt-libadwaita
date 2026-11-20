@@ -83,7 +83,8 @@ jobs:
           cat /tmp/hint.log; grep -q 'apt install' /tmp/hint.log
       - name: Install into a throwaway HOME
         run: |
-          export HOME=$(mktemp -d) XDG_CONFIG_HOME=$HOME/.config
+          export HOME=$(mktemp -d)
+          export XDG_CONFIG_HOME=$HOME/.config
           ./install.sh --enable
           test -f $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
           test -f $HOME/.local/share/color-schemes/Libadwaita.colors
