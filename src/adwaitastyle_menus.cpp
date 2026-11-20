@@ -491,6 +491,9 @@ bool AdwaitaStyle::menus_sizeFromContents(ContentsType ct, const QStyleOption *o
 bool AdwaitaStyle::menus_styleHint(StyleHint sh, const QStyleOption *, const QWidget *, QStyleHintReturn *, int &out) const
 {
     switch (sh) {
+    case SH_Menu_MouseTracking:
+    case SH_MenuBar_MouseTracking:
+    case SH_ComboBox_ListMouseTracking: out = 1; return true;  // QCommonStyle says 0: no hover highlight
     case SH_Menu_SubMenuPopupDelay: out = 200; return true;
     case SH_Menu_Scrollable: out = 1; return true;
     case SH_Menu_SloppySubMenus: out = 1; return true;

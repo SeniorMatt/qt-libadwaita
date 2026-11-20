@@ -32,43 +32,12 @@ bool inComboPopup(const QWidget *w)
 
 }  // namespace
 
-// KIO's places view (Dolphin's Places panel, KDE file dialogs) paints its icon 4 px from the item edge, so the
-// icon sat on the rim of our inset pill. Its delegate is wrapped: painting is shifted right by kPlacesShift and
-// PE_PanelItemViewItem (told by s_inPlaces) draws the pill out to 6 px from the view edge, leaving the icon
-// kPlacesShift - 2 px inside the pill, like GTK sidebars. KIO places text at absolute x, so a translation is needed.
-static bool s_inPlaces = false;
-static constexpr int kPlacesShift = 12;
-class PlacesDelegate : public QAbstractItemDelegate
-{
-public:
-    PlacesDelegate(QAbstractItemDelegate *inner, QObject *parent) : QAbstractItemDelegate(parent), m_inner(inner)
-    {
-        setObjectName("adwPlacesDelegate");
-        connect(inner, &QAbstractItemDelegate::sizeHintChanged, this, &QAbstractItemDelegate::sizeHintChanged);
-        connect(inner, &QAbstractItemDelegate::commitData, this, &QAbstractItemDelegate::commitData);
-        connect(inner, &QAbstractItemDelegate::closeEditor, this, &QAbstractItemDelegate::closeEditor);
-    }
-    QPointer<QAbstractItemDelegate> m_inner;
-    void paint(QPainter *p, const QStyleOptionViewItem &o, const QModelIndex &i) const override
-    {
-        if (!m_inner) return;
-        QStyleOptionViewItem s = o;
-        s.rect = QRect(o.rect.left(), o.rect.top(), qMax(0, o.rect.width() - kPlacesShift - 6), o.rect.height());
-        p->save();
-        p->translate(o.direction == Qt::RightToLeft ? 6 : kPlacesShift, 0);
-        s_inPlaces = true;
-        m_inner->paint(p, s, i);
-        s_inPlaces = false;
-        p->restore();
-    }
-    QSize sizeHint(const QStyleOptionViewItem &o, const QModelIndex &i) const override { return m_inner ? m_inner->sizeHint(o, i) : QSize(); }
-    QWidget *createEditor(QWidget *p, const QStyleOptionViewItem &o, const QModelIndex &i) const override { return m_inner ? m_inner->createEditor(p, o, i) : nullptr; }
-    void setEditorData(QWidget *e, const QModelIndex &i) const override { if (m_inner) m_inner->setEditorData(e, i); }
-    void setModelData(QWidget *e, QAbstractItemModel *m, const QModelIndex &i) const override { if (m_inner) m_inner->setModelData(e, m, i); }
-    void updateEditorGeometry(QWidget *e, const QStyleOptionViewItem &o, const QModelIndex &i) const override { if (m_inner) m_inner->updateEditorGeometry(e, o, i); }
-    bool editorEvent(QEvent *e, QAbstractItemModel *m, const QStyleOptionViewItem &o, const QModelIndex &i) override { return m_inner && m_inner->editorEvent(e, m, o, i); }
-    bool helpEvent(QHelpEvent *e, QAbstractItemView *v, const QStyleOptionViewItem &o, const QModelIndex &i) override { return m_inner && m_inner->helpEvent(e, v, o, i); }
-};
+// KIO's places view (Dolphin's Places panel, KDE file dialogs) paints its icon 4 px from the item edge, which put
+// the icon on the rim of our inset pill. Its delegate calls PE_PanelItemViewItem first, inside its own
+// painter save()/restore(), and paints icon and text afterwards with the same painter; so after drawing the pill
+// we translate the painter, which moves KIO's icon and text inward, and KIO's restore() undoes it.
+// (Never replace that delegate: KIO casts view->itemDelegate() to its own class without a check and crashes.)
+static constexpr int kPlacesShift = 6;
 
 bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
@@ -81,8 +50,10 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         if (!v) return false;
         const bool sel = v->state & State_Selected;
         const bool hover = (v->state & State_MouseOver) && (v->state & State_Enabled);
-        if (!w) w = v->widget;  // KIO's places delegate passes no widget
+        const bool fromKio = !w;  // KIO's places delegate passes no widget
+        if (!w) w = v->widget;
         const bool combo = inComboPopup(w);
+        const bool places = fromKio && w && w->inherits("KFilePlacesView") && v->rect.width() > 40;
         // libadwaita: sidebar / list rows are rounded pills (radius 9) inset a little; trees and tables (column
         // views) keep full-width rows, rounded only at the row ends.
         const bool columns = qobject_cast<const QTreeView *>(w) || qobject_cast<const QTableView *>(w);
@@ -103,9 +74,8 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
                 shape.setFillRule(Qt::WindingFill);
                 shape = shape.simplified();
             }
-        } else if (s_inPlaces) {
-            const bool rtl = v->direction == Qt::RightToLeft;
-            r.adjust(rtl ? 0 : 6 - kPlacesShift, 1, rtl ? kPlacesShift - 6 : 0, -1);
+        } else if (places) {
+            r.adjust(3, 1, -3, -1);
             shape.addRoundedRect(r, rad, rad);
         } else {
             if (!combo && r.width() > 24 && r.height() > 12) r.adjust(r.width() > 120 ? 6 : 2, 1, r.width() > 120 ? -6 : -2, -1);
@@ -131,6 +101,7 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
             p->drawPath(shape);
         }
         p->restore();
+        if (places) p->translate(v->direction == Qt::RightToLeft ? -kPlacesShift : kPlacesShift, 0);
         return true;
     }
     case PE_IndicatorBranch: {
@@ -338,17 +309,10 @@ void AdwaitaStyle::views_polish(QWidget *w)
         v->viewport()->setAttribute(Qt::WA_Hover, true);
         v->setMouseTracking(true);
         if (auto *tv = qobject_cast<QTableView *>(v)) tv->setShowGrid(false);
-        if (v->inherits("KFilePlacesView") && v->itemDelegate() && !v->findChild<QObject *>("adwPlacesDelegate", Qt::FindDirectChildrenOnly))
-            v->setItemDelegate(new PlacesDelegate(v->itemDelegate(), v));
     }
 }
 
 void AdwaitaStyle::views_unpolish(QWidget *w)
 {
-    auto *v = qobject_cast<QAbstractItemView *>(w);
-    if (!v) return;
-    if (auto *pd = static_cast<PlacesDelegate *>(v->findChild<QAbstractItemDelegate *>("adwPlacesDelegate", Qt::FindDirectChildrenOnly))) {
-        if (v->itemDelegate() == pd && pd->m_inner) v->setItemDelegate(pd->m_inner);
-        pd->deleteLater();
-    }
+    Q_UNUSED(w);
 }
