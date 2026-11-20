@@ -7,6 +7,11 @@
 #include <QListView>
 #include <QPainter>
 #include <QTableView>
+#include <QTreeView>
+#include <QAbstractScrollArea>
+#include <QEvent>
+#include <QPainterPath>
+#include <QRegion>
 #include <QStyleOptionHeader>
 #include <QStyleOptionViewItem>
 
@@ -37,16 +42,36 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         const bool sel = v->state & State_Selected;
         const bool hover = (v->state & State_MouseOver) && (v->state & State_Enabled);
         const bool combo = inComboPopup(w);
-        const bool icons = qobject_cast<const QListView *>(w) && static_cast<const QListView *>(w)->viewMode() == QListView::IconMode;
-        const qreal rad = (combo || icons) ? t.radius : 0;
+        // libadwaita: sidebar / list rows are rounded pills (radius 9) inset a little; trees and tables (column
+        // views) keep full-width rows, rounded only at the row ends.
+        const bool columns = qobject_cast<const QTreeView *>(w) || qobject_cast<const QTableView *>(w);
+        const qreal rad = t.radius;
         QRectF r(v->rect);
-        if (combo) r.adjust(0, 0, 0, 0);
+        QPainterPath shape;
+        if (columns) {
+            const auto pos = v->viewItemPosition;
+            const bool left = pos == QStyleOptionViewItem::Beginning || pos == QStyleOptionViewItem::OnlyOne;
+            const bool right = pos == QStyleOptionViewItem::End || pos == QStyleOptionViewItem::OnlyOne;
+            const bool table = qobject_cast<const QTableView *>(w);
+            if (table || pos == QStyleOptionViewItem::Invalid) { shape.addRect(r); }
+            else {
+                // rounded rect, then square off the inner ends
+                shape.addRoundedRect(r, rad, rad);
+                if (!left) shape.addRect(QRectF(r.left(), r.top(), qMin(rad, r.width()), r.height()));
+                if (!right) shape.addRect(QRectF(r.right() - qMin(rad, r.width()), r.top(), qMin(rad, r.width()), r.height()));
+                shape.setFillRule(Qt::WindingFill);
+                shape = shape.simplified();
+            }
+        } else {
+            if (!combo && r.width() > 24 && r.height() > 12) r.adjust(r.width() > 120 ? 6 : 2, 1, r.width() > 120 ? -6 : -2, -1);
+            shape.addRoundedRect(r, rad, rad);
+        }
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
         p->setPen(Qt::NoPen);
         if (v->backgroundBrush.style() != Qt::NoBrush) {
             p->setBrush(v->backgroundBrush);
-            p->drawRoundedRect(r, rad, rad);
+            p->drawPath(shape);
         }
         QColor fill;
         if (combo) {
@@ -58,7 +83,7 @@ bool AdwaitaStyle::views_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         }
         if (fill.isValid()) {
             p->setBrush(fill);
-            p->drawRoundedRect(r, rad, rad);
+            p->drawPath(shape);
         }
         p->restore();
         return true;
@@ -220,6 +245,51 @@ bool AdwaitaStyle::views_styleHint(StyleHint sh, const QStyleOption *, const QWi
     }
 }
 
+
+// Framed scroll areas get the libadwaita frame radius (12). The viewport and the scroll bars would cover the
+// rounded corners, so they are clipped with a mask built from the frame's inner rounded rect.
+namespace {
+class RoundScrollArea : public QObject
+{
+public:
+    RoundScrollArea(QAbstractScrollArea *a, qreal radius) : QObject(a), m_a(a), m_r(radius) { setObjectName("adwRoundScrollArea"); }
+    void apply()
+    {
+        const bool on = m_a->frameWidth() > 0 && m_a->frameShape() != QFrame::NoFrame
+                        && m_a->frameShape() != QFrame::HLine && m_a->frameShape() != QFrame::VLine;
+        QPainterPath path;
+        const QRectF in = QRectF(m_a->rect()).adjusted(1, 1, -1, -1);
+        path.addRoundedRect(in, m_r - 1, m_r - 1);
+        const QRegion round(path.toFillPolygon().toPolygon());
+        for (QObject *o : m_a->children()) {
+            auto *c = qobject_cast<QWidget *>(o);
+            if (!c || c->isWindow()) continue;
+            if (!on) { if (!c->mask().isEmpty()) c->clearMask(); continue; }
+            const QRegion full(c->geometry());
+            const QRegion clip = round.intersected(full);
+            if (clip == full) { if (!c->mask().isEmpty()) c->clearMask(); }
+            else c->setMask(clip.translated(-c->pos()));
+            c->removeEventFilter(this); c->installEventFilter(this);
+        }
+    }
+    bool eventFilter(QObject *o, QEvent *e) override
+    {
+        switch (e->type()) {
+        case QEvent::Resize: case QEvent::Move: case QEvent::Show: case QEvent::Hide: case QEvent::LayoutRequest:
+        case QEvent::StyleChange: case QEvent::ChildAdded:
+            if (!m_pending) { m_pending = true; QMetaObject::invokeMethod(this, [this] { m_pending = false; apply(); }, Qt::QueuedConnection); }
+            break;
+        default: break;
+        }
+        return QObject::eventFilter(o, e);
+    }
+private:
+    QAbstractScrollArea *m_a;
+    qreal m_r;
+    bool m_pending = false;
+};
+}  // namespace
+
 void AdwaitaStyle::views_polish(QWidget *w)
 {
     if (auto *v = qobject_cast<QAbstractItemView *>(w)) {
@@ -227,6 +297,20 @@ void AdwaitaStyle::views_polish(QWidget *w)
         v->setMouseTracking(true);
         if (auto *tv = qobject_cast<QTableView *>(v)) tv->setShowGrid(false);
     }
+    if (auto *a = qobject_cast<QAbstractScrollArea *>(w)) {
+        if (!inComboPopup(a) && !a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) {
+            auto *f = new RoundScrollArea(a, m_tokens.radius_card);
+            a->installEventFilter(f);
+        }
+    }
 }
 
-void AdwaitaStyle::views_unpolish(QWidget *) {}
+void AdwaitaStyle::views_unpolish(QWidget *w)
+{
+    if (auto *a = qobject_cast<QAbstractScrollArea *>(w)) {
+        if (QObject *f = a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) {
+            for (QObject *o : a->children()) if (auto *c = qobject_cast<QWidget *>(o)) { c->removeEventFilter(f); c->clearMask(); }
+            a->removeEventFilter(f); delete f;
+        }
+    }
+}
