@@ -5,6 +5,7 @@
 #include <QAbstractButton>
 #include <QAbstractScrollArea>
 #include <QApplication>
+#include <QFontInfo>
 #include <QComboBox>
 #include <QEvent>
 #include <QLineEdit>
@@ -25,11 +26,51 @@ void AdwaitaStyle::reload()
     m_tokens = AdwaitaTokens::forVariant(s->dark(), s->highContrast(), s->accent());
 }
 
+// Apps such as KDE ones set their own palette (KColorScheme, Breeze light) after the style is applied, which mixes
+// light and dark. Keep the libadwaita palette unless ADWAITA_KEEP_APP_PALETTE=1. Same for the font: use Adwaita Sans
+// 11 when it is installed, unless ADWAITA_KEEP_APP_FONT=1.
+static bool s_applyingPalette = false;
+static void applyAppPalette(const QPalette &p)
+{
+    if (qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_PALETTE")) return;
+    s_applyingPalette = true;
+    QApplication::setPalette(p);
+    s_applyingPalette = false;
+}
+
+void AdwaitaStyle::polish(QApplication *app)
+{
+    QCommonStyle::polish(app);
+    if (!qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_FONT")) {
+        QFont f(QStringLiteral("Adwaita Sans"), 11);
+        if (QFontInfo(f).family() == QLatin1String("Adwaita Sans")) {
+            QApplication::setFont(f);
+        }
+    }
+    app->installEventFilter(this);
+}
+
+void AdwaitaStyle::unpolish(QApplication *app)
+{
+    app->removeEventFilter(this);
+    QCommonStyle::unpolish(app);
+}
+
+bool AdwaitaStyle::eventFilter(QObject *o, QEvent *e)
+{
+    if (o == qApp && e->type() == QEvent::ApplicationPaletteChange && !s_applyingPalette
+        && QApplication::palette() != standardPalette()) {
+        const QPalette p = standardPalette();
+        QMetaObject::invokeMethod(this, [p] { applyAppPalette(p); }, Qt::QueuedConnection);
+    }
+    return QCommonStyle::eventFilter(o, e);
+}
+
 void AdwaitaStyle::settingsChanged()
 {
     reload();
     if (!qApp) return;
-    QApplication::setPalette(standardPalette());
+    applyAppPalette(standardPalette());
     // Re-polish every widget so cached state follows the new variant.
     const auto tops = QApplication::allWidgets();
     for (QWidget *w : tops) {

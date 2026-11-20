@@ -34,6 +34,9 @@ public:
     void polish(QPalette &pal) override;
     void polish(QWidget *w) override;
     void unpolish(QWidget *w) override;
+    void polish(QApplication *app) override;
+    void unpolish(QApplication *app) override;
+    bool eventFilter(QObject *o, QEvent *e) override;
     using QCommonStyle::polish;
     using QCommonStyle::unpolish;
 

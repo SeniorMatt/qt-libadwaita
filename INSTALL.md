@@ -62,3 +62,12 @@ Token data: `python3 tools/gen_tokens.py` regenerates `src/adwaitatokens_data.h`
 Same sources, compile-time variant: `cmake -S . -B build-qt5 -DQT_MAJOR=5 -DCMAKE_INSTALL_PREFIX=$HOME/.local && cmake --build build-qt5`.
 Installs `qtlibadwaitastyle.so` into `<prefix>/lib/qt5/plugins/styles` (key "Libadwaita"); the gallery is named `adwaita-gallery-qt5`.
 Use it with Qt 5 apps via `QT_STYLE_OVERRIDE=Libadwaita` (and `QT_PLUGIN_PATH` if not installed in a Qt plugin dir).
+
+## KDE apps: also pick the matching colour scheme
+KDE apps (Dolphin, Kate, Okular...) paint their content areas from the KDE colour scheme, not only from the
+style. Install the schemes and select "Libadwaita" or "Libadwaita Dark" in System Settings > Colours:
+
+    mkdir -p ~/.local/share/color-schemes && cp kde-colors/*.colors ~/.local/share/color-schemes/
+
+Regenerate them from the tokens with `python3 tools/gen_kde_colors.py`. The style keeps its own palette and uses
+Adwaita Sans 11 when installed; set ADWAITA_KEEP_APP_PALETTE=1 or ADWAITA_KEEP_APP_FONT=1 to keep the app's.
