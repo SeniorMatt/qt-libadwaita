@@ -251,7 +251,10 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
             return true;
         }
         if (shape == QFrame::Box || shape == QFrame::Panel || shape == QFrame::StyledPanel) {
-            const qreal rad = t.radius_card;  // scroll areas: contents are clipped round (views_polish)
+            // Scroll areas stay square: their contents (viewport, headers, scroll bars) would cover rounded corners,
+            // and clipping them in third-party apps proved unreliable.
+            const bool scroll = qobject_cast<const QAbstractScrollArea *>(w);
+            const qreal rad = scroll ? 0 : t.radius_card;
             p->save();
             p->setRenderHint(QPainter::Antialiasing);
             p->setBrush(Qt::NoBrush);

@@ -24,6 +24,8 @@
     void F##_unpolish(QWidget *w);
 #define ADW_FAMILIES(X) X(scroll) X(range) X(menus) X(tabs) X(views)
 
+qreal adwSpacingScale();  // user spacing option (1 = libadwaita)
+
 class AdwaitaStyle : public QCommonStyle
 {
     Q_OBJECT

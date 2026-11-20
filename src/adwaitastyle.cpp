@@ -5,6 +5,8 @@
 #include <QAbstractButton>
 #include <QAbstractScrollArea>
 #include <QApplication>
+#include <QStandardPaths>
+#include <QSettings>
 #include <QFontInfo>
 #include <QComboBox>
 #include <QEvent>
@@ -29,6 +31,36 @@ void AdwaitaStyle::reload()
 // Apps such as KDE ones set their own palette (KColorScheme, Breeze light) after the style is applied, which mixes
 // light and dark. Keep the libadwaita palette unless ADWAITA_KEEP_APP_PALETTE=1. Same for the font: use Adwaita Sans
 // 11 when it is installed, unless ADWAITA_KEEP_APP_FONT=1.
+// User options: ~/.config/qt-libadwaita.conf ([General] spacing=, font-size=) or env ADWAITA_SPACING / ADWAITA_FONT_SIZE
+// (env wins; Flatpak apps: flatpak override --user --env=ADWAITA_SPACING=1.5).
+//   spacing   = compact (0.75) | normal (1) | comfortable (1.5) | any number: scales layout gaps, margins, list rows
+//   font-size = point size of Adwaita Sans (default 11; 10 suits KDE layouts; 0 keeps the app's font)
+static QVariant adwOption(const char *env, const char *key)
+{
+    const QByteArray e = qgetenv(env);
+    if (!e.isEmpty()) return QString::fromUtf8(e);
+    static QSettings *conf = new QSettings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+                                               + QStringLiteral("/qt-libadwaita.conf"), QSettings::IniFormat);
+    return conf->value(QLatin1String(key));
+}
+qreal adwSpacingScale()
+{
+    static const qreal f = [] {
+        const QString v = adwOption("ADWAITA_SPACING", "spacing").toString().trimmed().toLower();
+        if (v == "compact") return 0.75;
+        if (v == "comfortable") return 1.5;
+        bool ok = false; const double d = v.toDouble(&ok);
+        return (ok && d >= 0.5 && d <= 3) ? d : 1.0;
+    }();
+    return f;
+}
+static int adwFontSize()
+{
+    const QVariant v = adwOption("ADWAITA_FONT_SIZE", "font-size");
+    bool ok = false; const int n = v.toInt(&ok);
+    return (ok && n >= 0 && n <= 40) ? n : 11;
+}
+
 static bool s_applyingPalette = false;
 static void applyAppPalette(const QPalette &p)
 {
@@ -41,8 +73,8 @@ static void applyAppPalette(const QPalette &p)
 void AdwaitaStyle::polish(QApplication *app)
 {
     QCommonStyle::polish(app);
-    if (!qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_FONT")) {
-        QFont f(QStringLiteral("Adwaita Sans"), 11);
+    if (!qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_FONT") && adwFontSize() > 0) {
+        QFont f(QStringLiteral("Adwaita Sans"), adwFontSize());
         if (QFontInfo(f).family() == QLatin1String("Adwaita Sans")) {
             QApplication::setFont(f);
         }
@@ -336,6 +368,12 @@ int AdwaitaStyle::pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWi
     const AdwaitaTokens &t = m_tokens;
     switch (pm) {
     case PM_DefaultFrameWidth: return qobject_cast<const QLineEdit *>(w) ? 0 : QCommonStyle::pixelMetric(pm, opt, w);
+    // Layout gaps follow the libadwaita 6px grid (6 between controls, 12 window margins), times the user's spacing.
+    case PM_LayoutHorizontalSpacing:
+    case PM_LayoutVerticalSpacing: return qRound(6 * adwSpacingScale());
+    case PM_LayoutLeftMargin: case PM_LayoutRightMargin:
+    case PM_LayoutTopMargin: case PM_LayoutBottomMargin:
+        return qRound(((w && w->isWindow()) ? 12 : 9) * adwSpacingScale());
     case PM_ButtonDefaultIndicator:
     case PM_ButtonShiftHorizontal:
     case PM_ButtonShiftVertical: return 0;

@@ -229,7 +229,8 @@ bool AdwaitaStyle::views_sizeFromContents(ContentsType ct, const QStyleOption *o
     }
     if (ct == CT_ItemViewItem) {
         QSize s = QCommonStyle::sizeFromContents(ct, opt, sz, w);
-        out = QSize(s.width(), qMax(s.height() + 6, inComboPopup(w) ? kRowMin : 34));
+        const qreal k = inComboPopup(w) ? 1.0 : adwSpacingScale();  // user spacing option makes rows taller/shorter
+        out = QSize(s.width(), qMax(s.height() + qRound(6 * k), inComboPopup(w) ? kRowMin : qRound(34 * qMin<qreal>(k, 1.0) + 12 * qMax<qreal>(k - 1, 0))));
         return true;
     }
     return false;
@@ -247,85 +248,7 @@ bool AdwaitaStyle::views_styleHint(StyleHint sh, const QStyleOption *, const QWi
 }
 
 
-// Framed scroll areas get the libadwaita frame radius (12). The viewport and the scroll bars would cover the
-// rounded corners, so four small corner patches sit on top: each paints the outside of the arc in the parent's
-// background colour plus the antialiased border arc. (Window masks on the children went stale on resize.)
-namespace {
-class CornerPatch : public QWidget
-{
-public:
-    CornerPatch(QAbstractScrollArea *a, int corner, const AdwaitaTokens *t) : QWidget(a), m_a(a), m_corner(corner), m_t(t)
-    {
-        setObjectName("adwCornerPatch");
-        setAttribute(Qt::WA_TransparentForMouseEvents);
-        setAttribute(Qt::WA_NoSystemBackground);
-        setFocusPolicy(Qt::NoFocus);
-    }
-protected:
-    void paintEvent(QPaintEvent *) override
-    {
-        const qreal R = m_t->radius_card;
-        QWidget *pw = m_a->parentWidget();
-        const QColor outside = pw ? pw->palette().color(pw->backgroundRole()) : m_t->window_bg;
-        QPainter p(this);
-        p.setRenderHint(QPainter::Antialiasing);
-        // work in a frame-sized coordinate system translated so this patch shows its corner
-        const QRectF frame = QRectF(m_a->rect());
-        p.translate(-pos());
-        QPainterPath outer; outer.addRect(QRectF(geometry()));
-        QPainterPath inner; inner.addRoundedRect(frame, R, R);
-        p.fillPath(outer.subtracted(inner), outside);
-        p.setPen(QPen(m_t->border, 1)); p.setBrush(Qt::NoBrush);
-        p.drawRoundedRect(frame.adjusted(.5, .5, -.5, -.5), R - .5, R - .5);
-    }
-private:
-    QAbstractScrollArea *m_a;
-    int m_corner;
-    const AdwaitaTokens *m_t;
-};
 
-class RoundScrollArea : public QObject
-{
-public:
-    RoundScrollArea(QAbstractScrollArea *a, const AdwaitaTokens *t) : QObject(a), m_a(a)
-    {
-        setObjectName("adwRoundScrollArea");
-        for (int i = 0; i < 4; ++i) m_p[i] = new CornerPatch(a, i, t);
-        m_r = int(t->radius_card) + 1;
-        apply();
-    }
-    ~RoundScrollArea() override { for (auto *c : m_p) delete c; }
-    void apply()
-    {
-        const bool on = m_a->frameWidth() > 0 && m_a->frameShape() != QFrame::NoFrame
-                        && m_a->frameShape() != QFrame::HLine && m_a->frameShape() != QFrame::VLine;
-        const int W = m_a->width(), H = m_a->height(), r = m_r;
-        const QPoint at[4] = {{0, 0}, {W - r, 0}, {0, H - r}, {W - r, H - r}};
-        for (int i = 0; i < 4; ++i) {
-            m_p[i]->setVisible(on);
-            if (!on) continue;
-            m_p[i]->setGeometry(QRect(at[i], QSize(r, r)));
-            m_p[i]->raise();
-        }
-    }
-    bool eventFilter(QObject *o, QEvent *e) override
-    {
-        switch (e->type()) {
-        case QEvent::Resize: case QEvent::Show: case QEvent::StyleChange: case QEvent::ChildAdded:
-        case QEvent::LayoutRequest: case QEvent::PaletteChange:
-            if (!m_pending) { m_pending = true; QMetaObject::invokeMethod(this, [this] { m_pending = false; apply(); }, Qt::QueuedConnection); }
-            break;
-        default: break;
-        }
-        return QObject::eventFilter(o, e);
-    }
-private:
-    QAbstractScrollArea *m_a;
-    CornerPatch *m_p[4];
-    int m_r = 13;
-    bool m_pending = false;
-};
-}  // namespace
 
 void AdwaitaStyle::views_polish(QWidget *w)
 {
@@ -334,16 +257,6 @@ void AdwaitaStyle::views_polish(QWidget *w)
         v->setMouseTracking(true);
         if (auto *tv = qobject_cast<QTableView *>(v)) tv->setShowGrid(false);
     }
-    if (auto *a = qobject_cast<QAbstractScrollArea *>(w)) {
-        if (!qEnvironmentVariableIntValue("ADWAITA_SQUARE_FRAMES") && !inComboPopup(a) && !a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) {
-            auto *f = new RoundScrollArea(a, &m_tokens);
-            a->installEventFilter(f);
-        }
-    }
 }
 
-void AdwaitaStyle::views_unpolish(QWidget *w)
-{
-    if (auto *a = qobject_cast<QAbstractScrollArea *>(w))
-        if (QObject *f = a->findChild<QObject *>("adwRoundScrollArea", Qt::FindDirectChildrenOnly)) { a->removeEventFilter(f); delete f; }
-}
+void AdwaitaStyle::views_unpolish(QWidget *) {}

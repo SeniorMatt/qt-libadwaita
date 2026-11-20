@@ -71,3 +71,13 @@ style. Install the schemes and select "Libadwaita" or "Libadwaita Dark" in Syste
 
 Regenerate them from the tokens with `python3 tools/gen_kde_colors.py`. The style keeps its own palette and uses
 Adwaita Sans 11 when installed; set ADWAITA_KEEP_APP_PALETTE=1 or ADWAITA_KEEP_APP_FONT=1 to keep the app's.
+
+## Spacing and font size
+Create `~/.config/qt-libadwaita.conf` (restart the apps after a change):
+
+    [General]
+    spacing=comfortable   # compact | normal | comfortable | any number 0.5-3 (gaps, margins, list rows)
+    font-size=10          # Adwaita Sans size; 11 is libadwaita's, 10 suits KDE layouts, 0 keeps the app's font
+
+Or use the env vars `ADWAITA_SPACING` and `ADWAITA_FONT_SIZE`. Flatpak apps can't read that file; use
+`flatpak override --user --env=ADWAITA_SPACING=comfortable <app-id>` instead.
