@@ -189,7 +189,10 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         if (!tab) return false;
         if (horizontal(tab->shape)) {  // AdwTabBar: title centred in the whole tab, the close button floats on the right
             p->save();
-            const QRect tr = tab->rect.adjusted(26, 0, -26, 0);
+            // 26px sides leave room for a floating close button; without one 12px, so squeezed tabs keep their text.
+            const int side = (tab->rightButtonSize.isValid() && tab->rightButtonSize.width() > 0)
+                          || (tab->leftButtonSize.isValid() && tab->leftButtonSize.width() > 0) ? 26 : 12;
+            const QRect tr = tab->rect.adjusted(side, 0, -side, 0);
             const int isz = 16;
             const bool hasIcon = !tab->icon.isNull();
             const int tw = qMin(p->fontMetrics().horizontalAdvance(tab->text), tr.width() - (hasIcon ? isz + 6 : 0));
@@ -458,7 +461,14 @@ bool AdwaitaStyle::tabs_sizeFromContents(ContentsType ct, const QStyleOption *op
     case CT_TabBarTab: {
         auto *tab = qstyleoption_cast<const QStyleOptionTab *>(opt);
         QSize s = QCommonStyle::sizeFromContents(ct, opt, sz, w);
-        if (tab && horizontal(tab->shape)) s.setHeight(qMax(s.height(), kTabH));
+        if (tab && horizontal(tab->shape)) {
+            s.setHeight(qMax(s.height(), kTabH));
+            // The label is centred between 26px side paddings (room for the floating close button, see
+            // CE_TabBarTabLabel); make the tab wide enough for the whole title unless the app squeezes it.
+            const int icon = tab->icon.isNull() ? 0 : 16 + 6;
+            const int side = (tab->rightButtonSize.width() > 0 || tab->leftButtonSize.width() > 0) ? 26 : 12;
+            s.setWidth(qMax(s.width(), tab->fontMetrics.horizontalAdvance(tab->text) + icon + 2 * side + 2));
+        }
         else s.setWidth(qMax(s.width(), kTabH));
         out = s;
         return true;

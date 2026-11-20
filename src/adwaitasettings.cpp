@@ -6,6 +6,11 @@
 #include <QDBusMessage>
 #include <QDBusReply>
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QFileSystemWatcher>
+#include <QTimer>
 #include <QtMath>
 #include <cmath>
 
@@ -42,6 +47,7 @@ AdwaitaSettings::AdwaitaSettings()
     m_accent = namedAccent("blue");
     applyEnv();
     load();
+    if (applyKde()) watchKde();
     QDBusConnection::sessionBus().connect(kPortal, kPath, kIface, "SettingChanged", this,
                                           SLOT(onSettingChanged(QString, QString, QDBusVariant)));
 }
@@ -96,14 +102,74 @@ void AdwaitaSettings::applyEnv()
     if (!an.isEmpty()) { m_animations = an != "0"; m_envAnim = true; }
 }
 
+static bool isPlasma()
+{
+    return qEnvironmentVariable("XDG_CURRENT_DESKTOP").split(':').contains(QLatin1String("KDE"), Qt::CaseInsensitive)
+        || qEnvironmentVariableIsSet("KDE_FULL_SESSION");
+}
+
+// Reads [Colors:Window] BackgroundNormal, [Colors:Selection] BackgroundNormal, [General] AccentColor/ColorScheme.
+bool AdwaitaSettings::applyKde()
+{
+    if (!isPlasma()) return false;
+    if (m_kdeFile.isEmpty()) {
+        // Flatpak apps with access to the host's file see it at ~/.config/kdeglobals; XDG_CONFIG_HOME first.
+        const QString xdg = qEnvironmentVariable("XDG_CONFIG_HOME");
+        for (const QString &f : {xdg.isEmpty() ? QString() : xdg + "/kdeglobals", QDir::homePath() + "/.config/kdeglobals"})
+            if (!f.isEmpty() && QFileInfo::exists(f)) { m_kdeFile = f; break; }
+        if (m_kdeFile.isEmpty()) return false;
+    }
+    QFile file(m_kdeFile);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
+    QString section, windowBg, schemeName;
+    while (!file.atEnd()) {
+        const QString line = QString::fromUtf8(file.readLine()).trimmed();
+        if (line.startsWith('[')) { section = line; continue; }
+        const int eq = line.indexOf('=');
+        if (eq < 0) continue;
+        const QString key = line.left(eq).trimmed(), val = line.mid(eq + 1).trimmed();
+        if (section == "[Colors:Window]" && key == "BackgroundNormal") windowBg = val;
+        else if (section == "[General]" && key == "ColorScheme") schemeName = val;
+    }
+    auto rgb = [](const QString &v) {
+        const QStringList p = v.split(',');
+        return p.size() >= 3 ? QColor(p[0].toInt(), p[1].toInt(), p[2].toInt()) : QColor(v);
+    };
+    const QColor bg = rgb(windowBg);
+    if (!bg.isValid()) return false;  // no colour scheme written yet: keep the portal
+    m_kdeScheme = true;
+    if (!m_envScheme) m_dark = qGray(bg.rgb()) < 128;
+    if (!m_envContrast) m_highContrast = schemeName.contains(QLatin1String("HighContrast"), Qt::CaseInsensitive);
+    return true;
+}
+
+void AdwaitaSettings::watchKde()
+{
+    // KConfig saves by writing a new file and renaming it over the old one, which drops the watch: re-add it.
+    auto *w = new QFileSystemWatcher(this);
+    w->addPath(m_kdeFile);
+    w->addPath(QFileInfo(m_kdeFile).absolutePath());
+    auto *debounce = new QTimer(this);
+    debounce->setSingleShot(true);
+    debounce->setInterval(150);
+    connect(w, &QFileSystemWatcher::fileChanged, debounce, qOverload<>(&QTimer::start));
+    connect(w, &QFileSystemWatcher::directoryChanged, debounce, qOverload<>(&QTimer::start));
+    connect(debounce, &QTimer::timeout, this, [this, w] {
+        if (!w->files().contains(m_kdeFile) && QFileInfo::exists(m_kdeFile)) w->addPath(m_kdeFile);
+        const bool d = m_dark, h = m_highContrast;
+        applyKde();
+        if (d != m_dark || h != m_highContrast) Q_EMIT changed();
+    });
+}
+
 void AdwaitaSettings::apply(const QString &ns, const QString &key, const QVariant &value)
 {
     if (!value.isValid()) return;
-    if (ns == kAppearance && key == "color-scheme" && !m_envScheme) {
+    if (ns == kAppearance && key == "color-scheme" && !m_envScheme && !m_kdeScheme) {
         const uint v = value.toUInt();
         // 0 = no preference (stay light), 1 = prefer dark, 2 = prefer light
         m_dark = v == 1;
-    } else if (ns == kAppearance && key == "contrast" && !m_envContrast) {
+    } else if (ns == kAppearance && key == "contrast" && !m_envContrast && !m_kdeScheme) {
         m_highContrast = value.toUInt() == 1;
     } else if (ns == kAppearance && key == "accent-color" && !m_envAccent) {
         if (!value.canConvert<QDBusArgument>()) return;
