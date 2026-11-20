@@ -11,6 +11,7 @@
 #include <QAbstractScrollArea>
 #include <QEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QScrollBar>
 #include <QStyleOptionSlider>
 #include <QTimer>
@@ -122,8 +123,6 @@ bool AdwaitaStyle::scroll_drawComplexControl(ComplexControl cc, const QStyleOpti
     auto lerp = [e](qreal a, qreal b) { return a + (b - a) * e; };
     const qreal th = lerp(t.scrollbar_slider_idle, t.scrollbar_slider_expanded);
     const qreal margin = lerp(t.scrollbar_margin_idle, t.scrollbar_margin_expanded);
-    const qreal troughW = lerp(2 * t.scrollbar_margin_idle + t.scrollbar_slider_idle, kExtent);
-    const qreal x0 = farLeft ? box.left() : box.right() - troughW;
 
     p->save();
     p->setOpacity(fade);
@@ -132,9 +131,10 @@ bool AdwaitaStyle::scroll_drawComplexControl(ComplexControl cc, const QStyleOpti
     p->setPen(Qt::NoPen);
     const QColor fg = t.window_fg;
     auto fgA = [&](qreal a) { QColor c = fg; c.setAlphaF(c.alphaF() * a); return c; };
-    if (overlay && e > 0) {  // translucent trough while expanded
+    if (overlay && e > 0) {  // translucent trough: an 8px pill exactly under the expanded slider (measured)
+        const qreal tx = farLeft ? box.left() + t.scrollbar_margin_expanded : box.right() - t.scrollbar_margin_expanded - t.scrollbar_slider_expanded;
         p->setBrush(fgA(t.scrollbar_trough_op * e));
-        p->drawRect(QRectF(x0, box.top(), troughW, box.height()));
+        p->drawRoundedRect(QRectF(tx, box.top(), t.scrollbar_slider_expanded, box.height()), t.scrollbar_slider_expanded / 2, t.scrollbar_slider_expanded / 2);
     }
     const qreal sx = farLeft ? box.left() + margin : box.right() - margin - th;
     QRectF s(sx, sl.top() + 0, th, sl.height());
@@ -144,7 +144,11 @@ bool AdwaitaStyle::scroll_drawComplexControl(ComplexControl cc, const QStyleOpti
         const bool hc = t.variant.startsWith("hc-");
         oc.setAlphaF((hc ? (e > 0.5 ? 1.0 : 0.6) : (e > 0.5 ? 0.6 : 0.35)));
         p->setBrush(oc);
-        p->drawRoundedRect(s.adjusted(-1, -1, 1, 1), th / 2 + 1, th / 2 + 1);
+        QPainterPath ring;  // outline only: must not paint under the slider
+        ring.addRoundedRect(s.adjusted(-1, -1, 1, 1), th / 2 + 1, th / 2 + 1);
+        ring.addRoundedRect(s, th / 2, th / 2);
+        ring.setFillRule(Qt::OddEvenFill);
+        p->drawPath(ring);
     }
     p->setBrush(fgA(opa));
     p->drawRoundedRect(s, th / 2, th / 2);

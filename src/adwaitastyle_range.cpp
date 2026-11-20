@@ -17,7 +17,9 @@
 
 namespace {
 
-constexpr int kSpinPadX = 6;        // extra horizontal padding inside each spin button (22 min + 2*6)
+constexpr int kSpinBtnW = 33;       // measured in libadwaita 1.10 shots: +/- cell width incl. 1px separator
+constexpr int kSpinTextPad = 6;     // text min width 28 + padding 6
+constexpr int kTrough = 4;          // measured: scale trough is 4px thick (SCSS token says 10, pixels win)
 constexpr int kTickLen = 6, kTickDist = 6;
 constexpr int kProgressTextGap = 6;
 
@@ -45,7 +47,7 @@ static void sliderRects(const AdwaitaTokens &t, const QStyleOptionSlider *s, QRe
     if (s->tickPosition & QSlider::TicksAbove) crossStart += tickSpace;
     const int center = crossStart + cell / 2;
     const int len = horiz ? r.width() : r.height();
-    const int th = int(t.scale_trough);
+    const int th = kTrough;
     if (horiz) groove = QRect(r.left(), center - th / 2, len, th);
     else groove = QRect(center - th / 2, r.top(), th, len);
     const int span = len - knob;
@@ -158,7 +160,7 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
         const bool active = (s->state & State_Sunken) && (s->activeSubControls & SC_SliderHandle);
         QRect g, h;
         sliderRects(t, s, g, h);
-        const qreal rad = t.scale_trough / 2;
+        const qreal rad = kTrough / 2.0;
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
         p->setPen(Qt::NoPen);
@@ -210,11 +212,9 @@ bool AdwaitaStyle::range_drawComplexControl(ComplexControl cc, const QStyleOptio
         // knob: shadow (0 2px 4px rgba(0,0,6,.2), ring 1px rgba(0,0,6,.1 / hc .35)), white fill
         const QRectF kr(h);
         if (enabled) {
-            for (int i = 0; i < 4; ++i) {  // cheap blur: stacked translucent discs
-                const qreal grow = 2.0 - i * 0.6;
-                p->setBrush(QColor(0, 0, 6, 12));
+            p->setBrush(QColor(0, 0, 6, 8));
+            for (qreal grow : {3.0, 2.2, 1.4, 0.6, -0.2, -1.0})  // cheap blur: stacked translucent discs
                 p->drawEllipse(kr.translated(0, 2).adjusted(-grow, -grow, grow, grow));
-            }
             p->setBrush(QColor(0, 0, 6, hc ? 90 : 26));
             p->drawEllipse(kr.adjusted(-1, -1, 1, 1));
         }
@@ -316,7 +316,7 @@ bool AdwaitaStyle::range_subControlRect(ComplexControl cc, const QStyleOptionCom
         auto *sb = qstyleoption_cast<const QStyleOptionSpinBox *>(opt);
         if (!sb) return false;
         const QRect r = opt->rect;
-        const int bw = sb->buttonSymbols == QAbstractSpinBox::NoButtons ? 0 : int(t.spin_button_w) + 2 * kSpinPadX;
+        const int bw = sb->buttonSymbols == QAbstractSpinBox::NoButtons ? 0 : kSpinBtnW;
         const bool rtl = opt->direction == Qt::RightToLeft;
         // visual order (LTR): [ edit | minus | plus ]
         auto cell = [&](int idx) {  // idx 0 = plus (outermost), 1 = minus
@@ -327,7 +327,7 @@ bool AdwaitaStyle::range_subControlRect(ComplexControl cc, const QStyleOptionCom
         case SC_SpinBoxUp: out = bw ? cell(0) : QRect(); return true;
         case SC_SpinBoxDown: out = bw ? cell(1) : QRect(); return true;
         case SC_SpinBoxEditField: {
-            const int pad = int(t.entry_pad_x);
+            const int pad = kSpinTextPad;
             out = rtl ? QRect(r.left() + 2 * bw + pad, r.top(), r.width() - 2 * bw - 2 * pad, r.height())
                       : QRect(r.left() + pad, r.top(), r.width() - 2 * bw - 2 * pad, r.height());
             return true;
@@ -371,8 +371,8 @@ bool AdwaitaStyle::range_sizeFromContents(ContentsType ct, const QStyleOption *o
     }
     if (ct == CT_SpinBox) {
         auto *sb = qstyleoption_cast<const QStyleOptionSpinBox *>(opt);
-        const int bw = (sb && sb->buttonSymbols == QAbstractSpinBox::NoButtons) ? 0 : int(t.spin_button_w) + 2 * kSpinPadX;
-        out = QSize(sz.width() + 2 * bw + 2 * int(t.entry_pad_x), qMax(sz.height(), int(t.entry_min_height)));
+        const int bw = (sb && sb->buttonSymbols == QAbstractSpinBox::NoButtons) ? 0 : kSpinBtnW;
+        out = QSize(qMax(sz.width(), 28) + 2 * bw + 2 * kSpinTextPad, qMax(sz.height(), int(t.entry_min_height)));
         return true;
     }
     return false;

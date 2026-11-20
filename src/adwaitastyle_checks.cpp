@@ -4,6 +4,7 @@
 #include <QCheckBox>
 #include <QEasingCurve>
 #include <QPainter>
+#include <QPainterPath>
 #include <QStyleOption>
 #include <QVariantAnimation>
 
@@ -75,12 +76,15 @@ bool AdwaitaStyle::drawCheckPrimitive(PrimitiveElement pe, const QStyleOption *o
         const qreal k = r.height() - 6;  // knob
         const qreal x = r.left() + 3 + prog * (r.width() - 6 - k);
         const QRectF kr(x, r.top() + 3, k, k);
-        if (!g_inFadedLayer) {  // 0 2px 4px rgba(0,0,6,.20)
-            p->setBrush(QColor(0, 0, 6, 12));
-            for (int i = 0; i < 4; ++i) {
-                const qreal grow = 2.0 - i * 0.6;
+        if (!g_inFadedLayer) {  // 0 2px 4px rgba(0,0,6,.20), clipped to the trough
+            QPainterPath clip;
+            clip.addRoundedRect(r, r.height() / 2, r.height() / 2);
+            p->save();
+            if (t.variant.endsWith("dark")) p->setClipPath(clip);  // libadwaita: shadow only leaks out on light schemes
+            p->setBrush(QColor(0, 0, 6, 8));
+            for (qreal grow : {3.0, 2.2, 1.4, 0.6, -0.2, -1.0})
                 p->drawEllipse(kr.translated(0, 2).adjusted(-grow, -grow, grow, grow));
-            }
+            p->restore();
         }
         const QColor white(255, 255, 255);
         const QColor viewBg = t.view_bg;
@@ -96,27 +100,36 @@ bool AdwaitaStyle::drawCheckPrimitive(PrimitiveElement pe, const QStyleOption *o
     const bool radio = pe == PE_IndicatorRadioButton;
     const qreal rad = radio ? r.height() / 2 : t.radius_check;
     const bool filled = on || partial;
-    QColor bg = filled ? t.accent_bg : t.control_bg;
-    if (hover && !filled) bg = bg.lighter(110);
-    if (opt->state & State_Sunken) bg = filled ? bg.darker(110) : t.button_active_bg;
-    p->setBrush(withDisabled(bg, opt));
-    p->drawRoundedRect(r, rad, rad);
-    if (t.variant.startsWith("hc-") && !filled) {
-        p->setBrush(Qt::NoBrush);
-        p->setPen(QPen(t.control_border, 1));
-        p->drawRoundedRect(r.adjusted(.5, .5, -.5, -.5), rad, rad);
+    const bool hc = t.variant.startsWith("hc-");
+    const bool sunk = opt->state & State_Sunken;
+    auto cc = [&](qreal a) { QColor c = t.window_fg; c.setAlphaF(c.alphaF() * a); return c; };
+    if (filled) {
+        p->setBrush(t.accent_bg);
+        p->drawRoundedRect(r, rad, rad);
+        if (sunk) { p->setBrush(QColor(0, 0, 6, 51)); p->drawRoundedRect(r, rad, rad); }
+        else if (hover) { p->setBrush(cc(0.10)); p->drawRoundedRect(r, rad, rad); }
+    } else if (sunk) {  // active: fill cc 25% (hc 60%), no ring
+        p->setBrush(cc(hc ? 0.60 : 0.25));
+        p->drawRoundedRect(r, rad, rad);
+    } else {  // inset 2px ring cc 15% (hover 20; hc 50 / 60)
+        QPainterPath ring;
+        ring.addRoundedRect(r, rad, rad);
+        ring.addRoundedRect(r.adjusted(2, 2, -2, -2), qMax<qreal>(0, rad - 2), qMax<qreal>(0, rad - 2));
+        ring.setFillRule(Qt::OddEvenFill);
+        p->setBrush(cc(hc ? (hover ? 0.60 : 0.50) : (hover ? 0.20 : 0.15)));
+        p->drawPath(ring);
     }
     if (filled) {
         const QColor fg = withDisabled(t.accent_fg, opt);
         const QPointF c = r.center();
         if (radio && !partial) {
             p->setPen(Qt::NoPen); p->setBrush(fg);
-            p->drawEllipse(c, 3.5, 3.5);
+            p->drawEllipse(c, 4.0, 4.0);
         } else {
             p->setPen(QPen(fg, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
             p->setBrush(Qt::NoBrush);
             if (partial) p->drawLine(c + QPointF(-4, 0), c + QPointF(4, 0));
-            else p->drawPolyline(QPolygonF({c + QPointF(-4.5, 0.2), c + QPointF(-1.5, 3.5), c + QPointF(4.5, -3.5)}));
+            else p->drawPolyline(QPolygonF({c + QPointF(-5.0, 0.1), c + QPointF(-1.2, 3.8), c + QPointF(5.2, -4.0)}));
         }
     }
     p->restore();
