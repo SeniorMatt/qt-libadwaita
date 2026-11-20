@@ -74,6 +74,10 @@ Per-distribution packages, Flatpak apps, `--system`, and the immutable KDE Linux
 KDE apps paint their content areas from the KDE colour scheme, so pick **Libadwaita** or **Libadwaita Dark**
 in Colours as well (`install.sh` installs both).
 
+**KDE Plasma, everything at once:** `install.sh` also installs two complete Global Themes (colours, style, window
+decoration, Adwaita icons, Plasma style, splash, fonts). Switch with one click: *System Settings > Colours & Themes >
+Global Theme > Libadwaita* (or *Libadwaita Dark*). Details: [docs/plasma.md](docs/plasma.md).
+
 ## Fonts
 
 GNOME uses **Adwaita Sans** for the interface and **Adwaita Mono** for code. `install.sh` installs both into

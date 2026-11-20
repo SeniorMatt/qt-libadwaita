@@ -12,10 +12,15 @@ usage() {
   cat <<'EOT'
 Usage: ./install.sh [options]
 
-  (no option)    install the style plugin (Qt 6, and Qt 5 if available), the KDE colour schemes and the
-                 Adwaita fonts into ~/.local; nothing is switched on globally yet
+  (no option)    install the style plugin (Qt 6, and Qt 5 if available), the KDE colour schemes, the
+                 Adwaita fonts and the Plasma theme parts (Global Themes "Libadwaita" and "Libadwaita Dark",
+                 window decorations, Plasma Style, splash, icon themes) into ~/.local; nothing is switched on yet
   --enable       also make every Qt app use the style (QT_STYLE_OVERRIDE=Libadwaita in your session,
                  and as a Flatpak override)
+  --plasma       also apply the light Global Theme now (plasma-apply-lookandfeel) and register Libadwaita and
+                 Libadwaita Dark as the light/dark pair for Plasma's automatic switching; run it on Plasma
+  --plasma-auto  like --plasma, and also turn automatic light/dark switching on
+  --no-plasma    do not install the Plasma theme parts (Global Themes, window decorations, Plasma Style, icons)
   --remove       undo everything this script installed (alias: --uninstall)
   --system       install the plugin and colour schemes into the distro's Qt plugin directory instead of
                  ~/.local (uses sudo; no QT_PLUGIN_PATH needed afterwards)
@@ -29,7 +34,7 @@ Details: docs/install.md
 EOT
 }
 
-enable=0 remove=0 system=0 fonts=1 qt5=1
+enable=0 remove=0 system=0 fonts=1 qt5=1 plasma=1 plasma_apply=0 plasma_auto=0
 for a in "$@"; do
   case $a in
     --enable) enable=1 ;;
@@ -37,6 +42,9 @@ for a in "$@"; do
     --system) system=1 ;;
     --no-fonts) fonts=0 ;;
     --no-qt5) qt5=0 ;;
+    --no-plasma) plasma=0 ;;
+    --plasma) plasma_apply=1 ;;
+    --plasma-auto) plasma_apply=1; plasma_auto=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "unknown option: $a" >&2; usage >&2; exit 2 ;;
   esac
@@ -48,6 +56,14 @@ cfg=${XDG_CONFIG_HOME:-$HOME/.config}
 envfile=$cfg/plasma-workspace/env/qt-libadwaita.sh
 envd=$cfg/environment.d/qt-libadwaita.conf
 fontdir=$L/share/fonts/Adwaita-qt-libadwaita
+LNF_LIGHT=io.github.seniormatt.libadwaita
+LNF_DARK=io.github.seniormatt.libadwaita-dark
+# everything the Plasma part installs (all inside ~/.local/share, never needs root)
+plasma_remove() {
+  rm -rf "$L/share/plasma/look-and-feel/$LNF_LIGHT" "$L/share/plasma/look-and-feel/$LNF_DARK" \
+         "$L/share/plasma/desktoptheme/Libadwaita" "$L/share/aurorae/themes/Libadwaita" "$L/share/aurorae/themes/Libadwaita-Dark" \
+         "$L/share/icons/Libadwaita" "$L/share/icons/Libadwaita-Dark"
+}
 FONTS_VERSION=51.0
 FONTS_URL=https://download.gnome.org/sources/adwaita-fonts/51/adwaita-fonts-$FONTS_VERSION.tar.xz
 FONTS_SHA256=fa104ae2c1b96580d322f563ffe8b2dfca5296b0eca4971efd2d8011405123d2
@@ -93,6 +109,13 @@ if [ $remove = 1 ]; then
   rm -f "$L/lib/qt6/plugins/styles/qtlibadwaitastyle.so" "$L/lib/qt5/plugins/styles/qtlibadwaitastyle.so" \
         "$L/share/color-schemes/Libadwaita"*.colors "$envfile" "$envd"
   rm -rf "$fontdir"
+  plasma_remove
+  if have kreadconfig6 && have kwriteconfig6; then  # drop the light/dark pair only if it is ours
+    for k in DefaultLightLookAndFeel:$LNF_LIGHT DefaultDarkLookAndFeel:$LNF_DARK; do
+      [ "$(kreadconfig6 --file kdeglobals --group KDE --key "${k%%:*}" 2>/dev/null)" = "${k#*:}" ] \
+        && kwriteconfig6 --file kdeglobals --group KDE --key "${k%%:*}" --delete
+    done || true
+  fi
   if have flatpak; then
     g=$L/share/flatpak/overrides/global  # drop only the lines this script added
     [ -f "$g" ] && sed -i -e "s#$L/lib/qt6/plugins:ro;##" -e '/^filesystems=$/d' \
@@ -223,6 +246,33 @@ put "$src6" "$P6"
 [ -n "$src5" ] && [ -f "$src5" ] && [ -n "$P5" ] && put "$src5" "$P5"
 for f in "$schemes_src/"*.colors; do put "$f" "$SCHEMES"; done
 
+# ---- Plasma theme parts: Global Themes, window decorations, Plasma Style, splash, icon themes ----
+# Same atomic replacement as put(), but always as the user (these go to ~/.local/share even with --system).
+put_user() {  # put_user SRC DIR
+  dst="$2/$(basename "$1")"
+  cmp -s "$1" "$dst" && return 0
+  cp "$1" "$dst.new.$$" && mv -f "$dst.new.$$" "$dst"
+}
+put_tree() {  # put_tree SRC_DIR DST_DIR: every file below SRC_DIR, atomically
+  (cd "$1" && find . -type f) | while IFS= read -r f; do
+    mkdir -p "$2/$(dirname "$f")"; put_user "$1/$f" "$2/$(dirname "$f")"
+  done
+}
+if [ $plasma = 1 ] && [ -d "$here/plasma" ]; then
+  P=$here/plasma
+  for id in $LNF_LIGHT $LNF_DARK; do put_tree "$P/look-and-feel/$id" "$L/share/plasma/look-and-feel/$id"; done
+  put_tree "$P/desktoptheme/Libadwaita" "$L/share/plasma/desktoptheme/Libadwaita"
+  for t in Libadwaita Libadwaita-Dark; do put_tree "$P/aurorae/$t" "$L/share/aurorae/themes/$t"; done
+  say "Plasma: Global Themes Libadwaita and Libadwaita Dark, window decorations and Plasma Style installed"
+  # Icon themes are built from the system's Adwaita icons (nothing is copied from this repository).
+  icons_tool=$here/tools/make_plasma_icons.py
+  if [ -f "$icons_tool" ] && have python3; then
+    python3 "$icons_tool" --out "$L/share/icons" || say "Icon themes skipped (the Global Themes fall back to Breeze icons)."
+  else
+    say "Icon themes skipped: python3 or tools/make_plasma_icons.py not found."
+  fi
+fi
+
 # Adwaita Sans / Mono (SIL OFL, see fonts/LICENSE); skipped if the system already has them.
 fetch_fonts() {  # download the official tarball into a temp dir, then install the files
   t=$(mktemp -d) || return 1
@@ -259,15 +309,18 @@ if [ $system = 0 ]; then
   # Qt must find the plugin in ~/.local, also for Plasma's "Application Style" list.
   cat > "$envfile" <<EOT
 export QT_PLUGIN_PATH=\$HOME/.local/lib/qt6/plugins:\$HOME/.local/lib/qt5/plugins\${QT_PLUGIN_PATH:+:\$QT_PLUGIN_PATH}
+# Plasma's own QML shell needs this from the session (the style sets it only inside Qt widget apps);
+# without it bold Adwaita Sans is emboldened twice. See docs/configuration.md.
+export QT_NO_SYNTHESIZED_BOLD=1
 EOT
-  printf 'QT_PLUGIN_PATH=%s/.local/lib/qt6/plugins:%s/.local/lib/qt5/plugins\n' "$HOME" "$HOME" > "$envd"
+  printf 'QT_PLUGIN_PATH=%s/.local/lib/qt6/plugins:%s/.local/lib/qt5/plugins\nQT_NO_SYNTHESIZED_BOLD=1\n' "$HOME" "$HOME" > "$envd"
   if [ $enable = 1 ]; then
     echo 'export QT_STYLE_OVERRIDE=Libadwaita' >> "$envfile"
     echo 'QT_STYLE_OVERRIDE=Libadwaita' >> "$envd"
   fi
 elif [ $enable = 1 ]; then
   mkdir -p "$(dirname "$envd")"
-  echo 'QT_STYLE_OVERRIDE=Libadwaita' > "$envd"
+  printf 'QT_STYLE_OVERRIDE=Libadwaita\nQT_NO_SYNTHESIZED_BOLD=1\n' > "$envd"
 fi
 
 # Flatpak apps. Default route: let every Flatpak app read the plugin from ~/.local (read-only) through a user
@@ -286,9 +339,24 @@ if have flatpak && [ $system = 0 ]; then
   [ $enable = 1 ] && flatpak override --user --env=QT_STYLE_OVERRIDE=Libadwaita
 fi
 
+# ---- --plasma: switch to the light Global Theme and register the light/dark pair ----
+if [ $plasma_apply = 1 ]; then
+  if [ $plasma = 0 ]; then say "--plasma needs the Plasma parts: drop --no-plasma."
+  elif have plasma-apply-lookandfeel && have kwriteconfig6; then
+    # keys of kcms/lookandfeel (lookandfeelsettings.kcfg): [KDE] DefaultLightLookAndFeel, DefaultDarkLookAndFeel, AutomaticLookAndFeel
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultLightLookAndFeel $LNF_LIGHT
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultDarkLookAndFeel $LNF_DARK
+    [ $plasma_auto = 1 ] && kwriteconfig6 --file kdeglobals --group KDE --key AutomaticLookAndFeel true
+    plasma-apply-lookandfeel -a $LNF_LIGHT && say "Plasma: Global Theme Libadwaita applied."
+  else
+    say "--plasma: plasma-apply-lookandfeel / kwriteconfig6 not found (this is not a Plasma 6 session); skipped."
+  fi
+fi
+
 say
 say "Installed. Log out and back in, then:"
-say "  KDE:   System Settings > Colours & Themes > Application Style: Libadwaita, and Colours: Libadwaita or Libadwaita Dark"
+[ $plasma = 1 ] && say "  KDE (one click): System Settings > Colours & Themes > Global Theme > Libadwaita (or Libadwaita Dark)"
+say "  KDE (by hand):   System Settings > Colours & Themes > Application Style: Libadwaita, and Colours: Libadwaita or Libadwaita Dark"
 [ $enable = 1 ] || say "  Other desktops: run ./install.sh --enable, or set QT_STYLE_OVERRIDE=Libadwaita"
 say "Try one app first without logging out:"
 if [ $system = 1 ]; then
