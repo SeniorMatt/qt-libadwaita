@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/qt-libadwaita/kde-colors">
+        <file>Libadwaita.colors</file>
+        <file>LibadwaitaDark.colors</file>
+        <file>LibadwaitaHighContrast.colors</file>
+        <file>LibadwaitaHighContrastDark.colors</file>
+    </qresource>
+</RCC>

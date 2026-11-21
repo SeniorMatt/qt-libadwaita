@@ -323,9 +323,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         auto *d = qstyleoption_cast<const QStyleOptionDockWidget *>(opt);
         if (!d) return false;
         p->save();
-        p->fillRect(opt->rect, t.window_bg);
-        p->fillRect(QRect(opt->rect.left(), opt->rect.bottom(), opt->rect.width(), 1), t.border);
-        p->setFont(boldFont(w));
+        p->setFont(boldFont(w));  // .heading: 700, 100%
         p->setPen(withDisabled(t.window_fg, opt));
         const QRect tr = subElementRect(SE_DockWidgetTitleBarText, opt, w).adjusted(6, 0, 0, 0);
         p->drawText(tr, Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine, p->fontMetrics().elidedText(d->title, Qt::ElideRight, tr.width()));
@@ -425,7 +423,7 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         if (!lo.icon.isNull()) lo.icon = symbolicIcon(lo.icon, k == Suggested ? t.accent_fg : k == Destructive ? t.destructive_fg : t.window_fg);
         p->save();
         { QFont bf = p->font(); bf.setBold(true); p->setFont(bf); lo.font.setBold(true); }  // button label weight 700
-        QCommonStyle::drawControl(CE_ToolButtonLabel, &lo, p, w);
+        drawControl(CE_ToolButtonLabel, &lo, p, w);
         p->restore();
         if (arrow || split) {
             const QRect ar = split ? subControlRect(CC_ToolButton, opt, SC_ToolButtonMenu, w)
@@ -445,6 +443,17 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         auto *g = qstyleoption_cast<const QStyleOptionGroupBox *>(opt);
         if (!g) return false;
         p->save();
+        {   // libadwaita preferences group: heading above, content in a card (boxed list look)
+            const QRectF fr = QRectF(subControlRect(CC_GroupBox, opt, SC_GroupBoxFrame, w)).adjusted(.5, .5, -.5, -.5);
+            auto card = [&](QPainter *q) {
+                q->setRenderHint(QPainter::Antialiasing);
+                q->setBrush(t.card_bg);
+                q->setPen(QPen(t.border, 1));
+                q->drawRoundedRect(fr, t.radius_card, t.radius_card);
+            };
+            if (g->state & State_Enabled) card(p);
+            else drawFaded(p, opt->rect, card);
+        }
         if (g->subControls & SC_GroupBoxCheckBox) {
             QStyleOptionButton cb;
             cb.QStyleOption::operator=(*opt);
@@ -514,8 +523,8 @@ bool AdwaitaStyle::tabs_subControlRect(ComplexControl cc, const QStyleOptionComp
         switch (sc) {
         case SC_GroupBoxCheckBox: out = QRect(0, (th - int(m_tokens.check_size)) / 2, int(m_tokens.check_size), int(m_tokens.check_size)); return true;
         case SC_GroupBoxLabel: out = QRect(cbw, 0, qMin(tw, opt->rect.width() - cbw), th); return true;
-        case SC_GroupBoxFrame: out = opt->rect; return true;
-        case SC_GroupBoxContents: out = opt->rect.adjusted(0, th + 6, 0, 0); return true;
+        case SC_GroupBoxFrame: out = opt->rect.adjusted(0, th + 6, 0, 0); return true;  // card below the heading
+        case SC_GroupBoxContents: out = opt->rect.adjusted(12, th + 6 + 9, -12, -9); return true;
         default: return false;
         }
     }

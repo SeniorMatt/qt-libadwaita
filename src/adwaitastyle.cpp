@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QStandardPaths>
 #include <QSettings>
+#include <QFileInfo>
 #include <QFontInfo>
 #include <QComboBox>
 #include <QEvent>
@@ -19,6 +20,8 @@
 #include <QPixmapCache>
 #include <QPointer>
 #include <QStyleOption>
+#include <QDir>
+#include <QFile>
 #include <QWidget>
 
 AdwaitaStyle::AdwaitaStyle()
@@ -82,9 +85,37 @@ static void applyAppPalette(const QPalette &p)
     s_applyingPalette = false;
 }
 
+// KDE code that builds a KColorScheme without a config (Dolphin's view background, Kirigami, ...) reads the colour
+// scheme file named by the application property KDE_COLOR_SCHEME_PATH, which KColorSchemeManager sets to a Breeze scheme
+// when the scheme in kdeglobals cannot be found: a Flatpak app does not see ~/.local/share/color-schemes. A dark libadwaita
+// then gets Breeze Light view colours (pure white) under light text. Point the property at our own scheme, written from
+// the copy built into the plugin to the user's cache (writable in a sandbox, too).
+void AdwaitaStyle::syncKdeColorScheme() const
+{
+    if (qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_PALETTE") || !qApp) return;
+    const QString cur = qApp->property("KDE_COLOR_SCHEME_PATH").toString();
+    if (cur.isEmpty() || QFileInfo(cur).fileName().startsWith(QLatin1String("Libadwaita"))) return;  // kdeglobals is used / ours
+    const QString v = m_tokens.variant;
+    const QString name = QLatin1String("Libadwaita") + (v.startsWith("hc") ? "HighContrast" : "") + (v.endsWith("dark") ? "Dark" : "");
+    QString dir = QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1String("/qt-libadwaita");
+    if (!QDir().mkpath(dir)) return;
+    const QString path = dir + QLatin1Char('/') + name + QLatin1String(".colors");
+    QFile src(QLatin1String(":/qt-libadwaita/kde-colors/") + name + QLatin1String(".colors"));
+    if (!src.open(QIODevice::ReadOnly)) return;
+    const QByteArray data = src.readAll();
+    QFile dst(path);
+    if (!dst.exists() || dst.size() != data.size()) {
+        if (!dst.open(QIODevice::WriteOnly | QIODevice::Truncate)) return;
+        dst.write(data);
+        dst.close();
+    }
+    qApp->setProperty("KDE_COLOR_SCHEME_PATH", path);
+}
+
 void AdwaitaStyle::polish(QApplication *app)
 {
     QCommonStyle::polish(app);
+    syncKdeColorScheme();
     if (!qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_FONT") && adwFontSize() > 0) {
         QFont f(QStringLiteral("Adwaita Sans"), adwFontSize());
         if (QFontInfo(f).family() == QLatin1String("Adwaita Sans")) {
@@ -151,7 +182,7 @@ bool AdwaitaStyle::eventFilter(QObject *o, QEvent *e)
     if (o == qApp && e->type() == QEvent::ApplicationPaletteChange && !s_applyingPalette
         && QApplication::palette() != standardPalette()) {
         const QPalette p = standardPalette();
-        QMetaObject::invokeMethod(this, [p] { applyAppPalette(p); }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, [this, p] { applyAppPalette(p); syncKdeColorScheme(); }, Qt::QueuedConnection);
     }
     return QCommonStyle::eventFilter(o, e);
 }
@@ -161,6 +192,7 @@ void AdwaitaStyle::settingsChanged()
     reload();
     if (!qApp) return;
     applyAppPalette(standardPalette());
+    syncKdeColorScheme();
     // Re-polish every widget so cached state follows the new variant.
     QList<QPointer<QWidget>> all;
     for (QWidget *w : QApplication::allWidgets()) all.append(w);
@@ -509,7 +541,7 @@ QRect AdwaitaStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex 
         case SC_ComboBoxFrame: return r;
         case SC_ComboBoxArrow: return QRect(r.right() - arrowW + 1, r.top(), arrowW, r.height());
         case SC_ComboBoxEditField: return QRect(r.left() + lp, r.top() + 1, r.width() - arrowW - lp - 6, r.height() - 2);
-        case SC_ComboBoxListBoxPopup: return r;
+        case SC_ComboBoxListBoxPopup: return r.adjusted(0, 0, 0, 4);  // popover: a small gap below the field
         default: break;
         }
     }

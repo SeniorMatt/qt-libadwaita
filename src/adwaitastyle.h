@@ -23,7 +23,7 @@
     bool F##_styleHint(StyleHint sh, const QStyleOption *opt, const QWidget *w, QStyleHintReturn *ret, int &out) const; \
     void F##_polish(QWidget *w); \
     void F##_unpolish(QWidget *w);
-#define ADW_FAMILIES(X) X(scroll) X(range) X(menus) X(tabs) X(views)
+#define ADW_FAMILIES(X) X(widgets) X(scroll) X(range) X(menus) X(tabs) X(views)
 
 qreal adwSpacingScale();  // user spacing option (1 = libadwaita)
 
@@ -51,6 +51,7 @@ public:
     int pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWidget *w) const override;
     QSize sizeFromContents(ContentsType ct, const QStyleOption *opt, const QSize &sz, const QWidget *w) const override;
     int styleHint(StyleHint sh, const QStyleOption *opt, const QWidget *w, QStyleHintReturn *ret) const override;
+    QIcon standardIcon(StandardPixmap sp, const QStyleOption *opt = nullptr, const QWidget *w = nullptr) const override;
 
     const AdwaitaTokens &tokens() const { return m_tokens; }
 
@@ -104,5 +105,6 @@ private slots:
 
 private:
     void reload();
+    void syncKdeColorScheme() const;
     AdwaitaTokens m_tokens;
 };
