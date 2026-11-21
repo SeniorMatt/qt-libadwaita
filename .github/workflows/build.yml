@@ -75,7 +75,7 @@ jobs:
     container: ubuntu:24.04
     steps:
       - name: Install dependencies
-        run: apt-get update && apt-get install -y build-essential cmake git ca-certificates qt6-base-dev curl xz-utils
+        run: apt-get update && apt-get install -y build-essential cmake git ca-certificates qt6-base-dev curl xz-utils python3
       - uses: actions/checkout@v4
       - name: Missing dependencies give a hint
         run: |
@@ -93,8 +93,35 @@ jobs:
           test -f $HOME/.local/share/color-schemes/Libadwaita.colors
           grep -q QT_STYLE_OVERRIDE=Libadwaita $HOME/.config/environment.d/qt-libadwaita.conf
           ls $HOME/.local/share/fonts/Adwaita-qt-libadwaita
+          grep -q QT_NO_SYNTHESIZED_BOLD=1 $HOME/.config/environment.d/qt-libadwaita.conf
+          grep -q QT_NO_SYNTHESIZED_BOLD=1 $HOME/.config/plasma-workspace/env/qt-libadwaita.sh
+          S=$HOME/.local/share
+          for id in io.github.seniormatt.libadwaita io.github.seniormatt.libadwaita-dark; do
+            test -f $S/plasma/look-and-feel/$id/metadata.json
+            test -f $S/plasma/look-and-feel/$id/contents/defaults
+            test -f $S/plasma/look-and-feel/$id/contents/splash/Splash.qml
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" $S/plasma/look-and-feel/$id/metadata.json
+          done
+          for t in Libadwaita Libadwaita-Dark; do
+            test -f $S/aurorae/themes/$t/decoration.svg
+            test -f $S/aurorae/themes/$t/${t}rc
+            test -f $S/aurorae/themes/$t/close.svg
+          done
+          test -f $S/plasma/desktoptheme/Libadwaita/metadata.json
+          test -f $S/plasma/desktoptheme/Libadwaita/dialogs/background.svg
+          # icon themes need adwaita-icon-theme: install it, rerun, and check the recoloured icons
+          apt-get install -y adwaita-icon-theme >/dev/null
+          ./install.sh --no-fonts --no-qt5
+          test -f $S/icons/Libadwaita/index.theme
+          grep -q current-color-scheme $S/icons/Libadwaita-Dark/symbolic/actions/document-open-symbolic.svg
+          test -e $S/icons/Libadwaita/symbolic/actions/document-open.svg
           ./install.sh --remove
           test ! -e $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
+          test ! -e $S/plasma/look-and-feel/io.github.seniormatt.libadwaita
+          test ! -e $S/aurorae/themes/Libadwaita
+          test ! -e $S/icons/Libadwaita
+      - name: Generated Plasma theme files are up to date
+        run: python3 tools/gen_plasma_theme.py --check
 
   tarball:
     name: release tarball (Debian 12)
@@ -113,8 +140,10 @@ jobs:
           mkdir /tmp/unpack && tar -C /tmp/unpack -xzf dist/*.tar.gz
           cd /tmp/unpack/qt-libadwaita-*/
           test -f qt6/qtlibadwaitastyle.so && test -f qt5/qtlibadwaitastyle.so && test -f fonts/AdwaitaSans-Regular.ttf
+          test -f plasma/aurorae/Libadwaita/decoration.svg && test -f tools/make_plasma_icons.py
           env PATH=/usr/bin:/bin ./install.sh --enable
           test -f $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so
           test -f $HOME/.local/lib/qt5/plugins/styles/qtlibadwaitastyle.so
+          test -f $HOME/.local/share/aurorae/themes/Libadwaita-Dark/decoration.svg
           ./install.sh --remove
           test ! -e $HOME/.local/lib/qt6/plugins/styles/qtlibadwaitastyle.so

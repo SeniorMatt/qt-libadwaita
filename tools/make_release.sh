@@ -2,7 +2,7 @@
 # Build the portable release tarball: qt-libadwaita-<version>-<arch>.tar.gz
 #   tools/make_release.sh [OUTDIR]        (default OUTDIR: ./dist)
 # Builds the Qt 6 plugin and, if Qt 5 dev files exist, the Qt 5 plugin; stages them with the colour schemes,
-# fonts, install.sh, README.md and COPYING. Build on the oldest distro you want to support (glibc, Qt 6.4).
+# fonts, the Plasma themes (plasma/, icons are built at install time), install.sh, README.md and COPYING. Build on the oldest distro you want to support (glibc, Qt 6.4).
 set -e
 root=$(cd "$(dirname "$0")/.." && pwd)
 out=${1:-$root/dist}
@@ -42,7 +42,8 @@ rm -rf "$t"
 
 cp "$root/install.sh" "$stage/install.sh"; chmod +x "$stage/install.sh"
 cp "$root/README.md" "$root/COPYING" "$stage/"
-mkdir -p "$stage/docs"; cp "$root/docs/install.md" "$stage/docs/"
+mkdir -p "$stage/docs" "$stage/tools"; cp "$root/docs/install.md" "$root/docs/plasma.md" "$stage/docs/"
+cp -r "$root/plasma" "$stage/plasma"; cp "$root/tools/make_plasma_icons.py" "$stage/tools/"
 
 tar -C "$out" -czf "$out/$name.tar.gz" "$name"
 echo "$out/$name.tar.gz"

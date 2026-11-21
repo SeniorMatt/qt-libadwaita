@@ -1,0 +1,29 @@
+[kdeglobals][KDE]
+widgetStyle=Libadwaita
+
+[kdeglobals][General]
+ColorScheme=Libadwaita
+font=Adwaita Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+fixed=Adwaita Mono,10,-1,5,400,0,0,0,1,0,0,0,0,0,0,1
+smallestReadableFont=Adwaita Sans,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+toolBarFont=Adwaita Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+menuFont=Adwaita Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+
+[kdeglobals][WM]
+activeFont=Adwaita Sans,10,-1,5,700,0,0,0,0,0,0,0,0,0,0,1
+
+[kdeglobals][Icons]
+Theme=Libadwaita
+
+[plasmarc][Theme]
+name=Libadwaita
+
+[kcminputrc][Mouse]
+cursorTheme=Adwaita
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__Libadwaita
+
+[ksplashrc][KSplash]
+Theme=io.github.seniormatt.libadwaita

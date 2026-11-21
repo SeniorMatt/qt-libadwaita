@@ -27,7 +27,13 @@ tar xf qt-libadwaita-*.tar.gz && cd qt-libadwaita-*/ && ./install.sh --enable
 Log out and back in afterwards. To try one app first: `QT_PLUGIN_PATH=~/.local/lib/qt6/plugins QT_STYLE_OVERRIDE=Libadwaita kate`.
 
 Options: `--enable` (switch it on for every Qt app), `--system` (install into the distribution's Qt plugin
-directory with sudo instead of `~/.local`), `--no-fonts`, `--no-qt5`, `--remove`.
+directory with sudo instead of `~/.local`), `--no-fonts`, `--no-qt5`, `--remove`, and for KDE Plasma `--plasma` (also
+apply the light Global Theme), `--plasma-auto` (also switch on automatic light/dark), `--no-plasma`.
+
+On KDE Plasma the installer also puts the Global Themes **Libadwaita** and **Libadwaita Dark** (with window
+decorations, icons, Plasma style and splash) into `~/.local/share`; switch with *System Settings > Colours & Themes >
+Global Theme > Libadwaita*. See [plasma.md](plasma.md). The icon themes are generated from the Adwaita icons of your
+distribution (package `adwaita-icon-theme`, needs python3).
 
 ## Dependencies per distribution
 
