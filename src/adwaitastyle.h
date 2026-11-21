@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include <QFont>
 #include "adwaitatokens.h"
 #include <QCommonStyle>
 #include <QIcon>
@@ -26,6 +27,9 @@
 #define ADW_FAMILIES(X) X(widgets) X(scroll) X(range) X(menus) X(tabs) X(views)
 
 qreal adwSpacingScale();  // user spacing option (1 = libadwaita)
+// Button, tab and drop-down labels: libadwaita draws them bold (700, grayscale AA). Option bold-labels /
+// ADWAITA_BOLD_LABELS: 1 (default) | semibold (600) | 0 (keep the widget's own weight and antialiasing).
+QFont adwLabelFont(QFont f);
 
 class AdwaitaStyle : public QCommonStyle
 {

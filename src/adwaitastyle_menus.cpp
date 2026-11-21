@@ -3,6 +3,7 @@
 #include "adwaitastyle.h"
 #include "adwaitaanimations.h"
 #include <QWindow>
+#include <QSurfaceFormat>
 
 #include <QAbstractItemView>
 #include <QApplication>
@@ -191,12 +192,19 @@ public:
     {
         if (o != m_w) return false;
         if (e->type() == QEvent::Hide) { m_done = false; }
-        // Some apps create the native window before the style is applied (Plasma calls winId() on its menus),
-        // so the surface has no alpha and the corners/shadow cannot be translucent. The Show event comes before
-        // the native window is mapped: drop it here and Qt recreates it with an alpha channel right away.
+        // The native window can exist before it became translucent: Plasma calls winId() on its menus, and an app
+        // that switches the style live (Kinoklip) has menus that were shown under the old style. Its surface has no
+        // alpha, so the corners and the shadow margin come out black; Qt does not change the format of an existing
+        // window. The Show event comes before the window is mapped: drop it here with an alpha format and Qt
+        // recreates it right away.
         if (e->type() == QEvent::Show && m_w->testAttribute(Qt::WA_TranslucentBackground)) {
             QWindow *wh = m_w->windowHandle();
-            if (wh && wh->handle() && !wh->format().hasAlpha() && wh->requestedFormat().hasAlpha()) wh->destroy();
+            if (wh && wh->handle() && !wh->format().hasAlpha()) {
+                QSurfaceFormat f = wh->requestedFormat();
+                f.setAlphaBufferSize(8);
+                wh->destroy();
+                wh->setFormat(f);
+            }
         }
         if (e->type() == QEvent::Show && !m_done && m_w->testAttribute(Qt::WA_TranslucentBackground)) {
             m_done = true;
@@ -283,6 +291,18 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         return true;
     case PE_PanelMenu: {
         const bool translucent = w && w->testAttribute(Qt::WA_TranslucentBackground);
+        // Translucent but the window still got no alpha channel (a platform that cannot do it): the shadow margin
+        // would be black, so paint a plain square panel over the whole window instead.
+        const QWindow *wh = translucent ? w->window()->windowHandle() : nullptr;
+        if (wh && wh->handle() && !wh->format().hasAlpha()) {
+            p->save();
+            p->fillRect(opt->rect, t.popover_bg);
+            p->setPen(QPen(menuRing(t), 1));
+            p->setBrush(Qt::NoBrush);
+            p->drawRect(QRectF(opt->rect).adjusted(.5, .5, -.5, -.5));
+            p->restore();
+            return true;
+        }
         const qreal m = translucent ? kShadow : 0;
         const qreal rad = translucent ? t.radius_popover : t.radius_popover - .5;  // masked (RoundMask) without a compositor
         const QRectF r = QRectF(opt->rect).adjusted(m, m, -m, -m);

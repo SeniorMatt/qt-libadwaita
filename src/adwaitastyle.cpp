@@ -70,6 +70,19 @@ qreal adwSpacingScale()
     }();
     return f;
 }
+QFont adwLabelFont(QFont f)
+{
+    static const int weight = [] {  // 0 = keep
+        const QString v = adwOption("ADWAITA_BOLD_LABELS", "bold-labels").toString().trimmed().toLower();
+        if (v == "0" || v == "false" || v == "no" || v == "off") return 0;
+        if (v == "semibold" || v == "600") return 600;
+        return 700;
+    }();
+    if (weight == 0) return f;
+    f.setWeight(weight == 600 ? QFont::DemiBold : QFont::Bold);
+    f.setStyleStrategy(QFont::StyleStrategy(f.styleStrategy() | QFont::NoSubpixelAntialias));  // GTK labels are grayscale
+    return f;
+}
 static int adwFontSize()
 {
     const QVariant v = adwOption("ADWAITA_FONT_SIZE", "font-size");
@@ -599,7 +612,7 @@ QSize AdwaitaStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt, c
         const int padX = pill ? 32 : int(t.button_pad_x);  // .pill: padding 10px 32px
         int extra = 0;  // the label is drawn bold
         if (auto *b = qstyleoption_cast<const QStyleOptionButton *>(opt)) if (!b->text.isEmpty()) {
-            QFont bf = w ? w->font() : QApplication::font(); bf.setBold(true);
+            QFont bf = adwLabelFont(w ? w->font() : QApplication::font());
             extra = QFontMetrics(bf).horizontalAdvance(b->text) - b->fontMetrics.horizontalAdvance(b->text);
         }
         return QSize(qMax(sz.width() + extra + 2 * padX, int(t.button_min_height)),
@@ -610,7 +623,7 @@ QSize AdwaitaStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt, c
     case CT_ComboBox: {
         auto *cb = qobject_cast<const QComboBox *>(w);
         if (cb && !cb->isEditable()) {  // GtkDropDown: padding 10, bold label, 6 gap, 16px chevron
-            QFont bf = cb->font(); bf.setBold(true);
+            QFont bf = adwLabelFont(cb->font());
             const QFontMetrics fm(bf);
             int tw = 0;
             for (int i = 0; i < cb->count(); ++i) tw = qMax(tw, fm.horizontalAdvance(cb->itemText(i)));

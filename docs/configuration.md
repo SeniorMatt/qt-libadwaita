@@ -16,6 +16,7 @@ xdg-desktop-portal. On Plasma, dark and high contrast follow the KDE colour sche
 | `ADWAITA_SPACING` | `compact normal comfortable` or 0.5-3 | see below |
 | `ADWAITA_FONT_SIZE` | points, `0` = app font | see below |
 | `ADWAITA_KEEP_APP_PALETTE` / `ADWAITA_KEEP_APP_FONT` | `1` | keep the app's own palette / font |
+| `ADWAITA_BOLD_LABELS` | `1`, `semibold`, `0` | weight of button, drop-down and tool button labels: `1` (default) bold like libadwaita, `semibold`, or `0` to keep the widget's own weight and antialiasing (for apps with their own font). Config key: `bold-labels` |
 | `ADWAITA_SYNTHETIC_BOLD` | `1` | keep Qt's synthetic bold. By default the style sets `QT_NO_SYNTHESIZED_BOLD=1`, because Qt otherwise emboldens the Bold instance of the variable Adwaita Sans a second time (bold text ~33% heavier than in GTK). The setting is process-wide: it stays in effect if the app later switches to another style, so fonts without a real bold face then show bold text as regular |
 
 Plasma's own QML shell (panel, System Settings, Discover) does not use the style's in-process setting, so it needs
@@ -28,6 +29,7 @@ Create `~/.config/qt-libadwaita.conf` (restart the apps after a change):
     [General]
     spacing=comfortable   # compact | normal | comfortable | any number 0.5-3 (gaps, margins, list rows)
     font-size=11          # Adwaita Sans size; default 10 (fits Qt/KDE layouts), 11 = exact GNOME size, 0 = app font
+    bold-labels=true      # button labels: true (bold, as libadwaita) | semibold | false (keep the font's weight)
 
 Or use the env vars `ADWAITA_SPACING` and `ADWAITA_FONT_SIZE`. Flatpak apps can't read that file; use
 `flatpak override --user --env=ADWAITA_SPACING=comfortable <app-id>` instead.

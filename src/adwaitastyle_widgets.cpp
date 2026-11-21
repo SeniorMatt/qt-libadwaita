@@ -582,7 +582,7 @@ bool AdwaitaStyle::widgets_sizeFromContents(ContentsType ct, const QStyleOption 
     if (ct != CT_ToolButton) return false;
     auto *tb = qstyleoption_cast<const QStyleOptionToolButton *>(opt);
     if (!tb || tb->toolButtonStyle != Qt::ToolButtonTextUnderIcon || tb->text.isEmpty() || tb->icon.isNull()) return false;
-    QFont bf = tb->font; bf.setBold(true);
+    QFont bf = adwLabelFont(tb->font);
     const QFontMetrics fm(bf);
     out = QSize(qMax(fm.horizontalAdvance(tb->text), tb->iconSize.width()) + 24, tb->iconSize.height() + 4 + fm.height() + 16);
     out = out.expandedTo(QSize(sz.width() > 0 ? 56 : 0, 0));

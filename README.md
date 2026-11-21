@@ -124,6 +124,7 @@ Everything follows the desktop by default. To override, use `~/.config/qt-libadw
 [General]
 spacing=comfortable   # compact | normal | comfortable | any number 0.5-3
 font-size=11          # Adwaita Sans size; default 10, 11 = exact GNOME size, 0 = keep the app's font
+bold-labels=true      # button labels: true (bold, as libadwaita) | semibold | false
 ```
 
 or environment variables:
@@ -134,7 +135,7 @@ or environment variables:
 | `ADWAITA_ACCENT` | `blue`, `teal`, `green`, `yellow`, `orange`, `red`, `pink`, `purple`, `slate`, `#rrggbb` |
 | `ADWAITA_HIGH_CONTRAST` | `0`, `1` |
 | `ADWAITA_ANIMATIONS` | `0`, `1` |
-| `ADWAITA_SPACING`, `ADWAITA_FONT_SIZE` | as in the config file |
+| `ADWAITA_SPACING`, `ADWAITA_FONT_SIZE`, `ADWAITA_BOLD_LABELS` | as in the config file |
 | `ADWAITA_KEEP_APP_PALETTE`, `ADWAITA_KEEP_APP_FONT` | `1` keeps the app's own palette or font |
 
 ## For app developers

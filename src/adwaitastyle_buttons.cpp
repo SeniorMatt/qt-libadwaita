@@ -39,7 +39,7 @@ bool AdwaitaStyle::drawButtonLabel(const QStyleOption *opt, QPainter *p, const Q
     if (!b.icon.isNull()) b.icon = symbolicIcon(b.icon, k == Suggested ? m_tokens.accent_fg : k == Destructive ? m_tokens.destructive_color
                                                       : b.palette.color(QPalette::Normal, QPalette::ButtonText));
     p->save();
-    QFont bf = p->font(); bf.setBold(true); bf.setStyleStrategy(QFont::NoSubpixelAntialias); p->setFont(bf);  // libadwaita button label weight 700
+    QFont bf = adwLabelFont(p->font()); p->setFont(bf);  // libadwaita button label weight 700
     b.fontMetrics = QFontMetrics(bf);
     QCommonStyle::drawControl(CE_PushButtonLabel, &b, p, w);
     p->restore();
@@ -83,7 +83,7 @@ bool AdwaitaStyle::drawComboLabel(const QStyleOption *opt, QPainter *p, const QW
     if (!cb || cb->editable) return false;
     QRect r = subControlRect(CC_ComboBox, cb, SC_ComboBoxEditField, w);
     p->save();
-    QFont bf = p->font(); bf.setBold(true); bf.setStyleStrategy(QFont::NoSubpixelAntialias); p->setFont(bf);
+    QFont bf = adwLabelFont(p->font()); p->setFont(bf);
     if (!cb->currentIcon.isNull()) {
         const QIcon icon = symbolicIcon(cb->currentIcon, m_tokens.window_fg);
         const QIcon::Mode im = (cb->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled;

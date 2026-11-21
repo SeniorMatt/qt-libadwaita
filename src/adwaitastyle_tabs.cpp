@@ -92,9 +92,7 @@ bool horizontal(QTabBar::Shape s) { return s == QTabBar::RoundedNorth || s == QT
 
 QFont boldFont(const QWidget *w)
 {
-    QFont f = w ? w->font() : QApplication::font();
-    f.setBold(true);
-    return f;
+    return adwLabelFont(w ? w->font() : QApplication::font());
 }
 
 }  // namespace
@@ -422,7 +420,7 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         lo.palette.setColor(QPalette::WindowText, lo.palette.color(QPalette::ButtonText));
         if (!lo.icon.isNull()) lo.icon = symbolicIcon(lo.icon, k == Suggested ? t.accent_fg : k == Destructive ? t.destructive_fg : t.window_fg);
         p->save();
-        { QFont bf = p->font(); bf.setBold(true); p->setFont(bf); lo.font.setBold(true); }  // button label weight 700
+        { QFont bf = adwLabelFont(p->font()); p->setFont(bf); lo.font = adwLabelFont(lo.font); }  // button label weight 700
         drawControl(CE_ToolButtonLabel, &lo, p, w);
         p->restore();
         if (arrow || split) {
@@ -588,7 +586,7 @@ bool AdwaitaStyle::tabs_sizeFromContents(ContentsType ct, const QStyleOption *op
         const bool hasText = tb && !tb->text.isEmpty() && tb->toolButtonStyle != Qt::ToolButtonIconOnly;
         int wd = sz.width() + (hasText ? 18 : 10);
         if (hasText) {  // label is drawn bold
-            QFont bf = tb->font; bf.setBold(true);
+            QFont bf = adwLabelFont(tb->font);
             wd += QFontMetrics(bf).horizontalAdvance(tb->text) - tb->fontMetrics.horizontalAdvance(tb->text);
         }
         const bool circ = adwClass(w).split(' ', Qt::SkipEmptyParts).contains("circular");
