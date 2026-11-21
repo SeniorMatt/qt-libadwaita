@@ -24,6 +24,16 @@ constexpr int kTrough = 4;          // measured: scale trough is 4px thick (SCSS
 constexpr int kTickLen = 6, kTickDist = 6;
 constexpr int kProgressTextGap = 6;
 
+// libadwaita progress bars are a bare thin bar: widget bars (QProgressBar) drop the percentage text. Bars painted for
+// item-view cells (delegates pass the view, not a QProgressBar) keep it, since there it is the only readout;
+// an app can ask for it on a widget with the property adwaita-progress-text = true.
+bool showProgressText(const QStyleOptionProgressBar *pb, const QWidget *w)
+{
+    if (!pb || !pb->textVisible) return false;
+    if (!qobject_cast<const QProgressBar *>(w)) return true;
+    return w->property("adwaita-progress-text").toBool();
+}
+
 QColor mixOver(const QColor &top, const QColor &bottom, qreal a)  // top at alpha a over bottom
 {
     return QColor::fromRgbF(top.redF() * a + bottom.redF() * (1 - a), top.greenF() * a + bottom.greenF() * (1 - a),
@@ -59,23 +69,24 @@ static void sliderRects(const AdwaitaTokens &t, const QStyleOptionSlider *s, QRe
 
 bool AdwaitaStyle::range_drawPrimitive(PrimitiveElement, const QStyleOption *, QPainter *, const QWidget *) const { return false; }
 
-bool AdwaitaStyle::range_drawControl(ControlElement ce, const QStyleOption *opt, QPainter *p, const QWidget *) const
+bool AdwaitaStyle::range_drawControl(ControlElement ce, const QStyleOption *opt, QPainter *p, const QWidget *w) const
 {
     if (ce != CE_ProgressBar) return false;
     auto *pb = qstyleoption_cast<const QStyleOptionProgressBar *>(opt);
     if (!pb) return false;
     const AdwaitaTokens &t = m_tokens;
+    const bool showText = showProgressText(pb, w);
     const bool horiz = bool(pb->state & State_Horizontal);
     const int thick = int(t.progress_thickness);
     const bool hc = t.variant.startsWith("hc-");
     QRectF bar;
     QRect textRect;
     if (horiz) {
-        int h = pb->textVisible ? thick + kProgressTextGap + pb->fontMetrics.height() : thick;
+        int h = showText ? thick + kProgressTextGap + pb->fontMetrics.height() : thick;
         QRect r = opt->rect;
         const int top = r.top() + (r.height() - h) / 2;
         bar = QRectF(r.left(), top + h - thick, r.width(), thick);
-        if (pb->textVisible) textRect = QRect(r.left(), top, r.width(), h - thick - kProgressTextGap);
+        if (showText) textRect = QRect(r.left(), top, r.width(), h - thick - kProgressTextGap);
     } else {
         bar = QRectF(opt->rect.left() + (opt->rect.width() - thick) / 2, opt->rect.top(), thick, opt->rect.height());
     }
@@ -127,7 +138,7 @@ bool AdwaitaStyle::range_drawControl(ControlElement ce, const QStyleOption *opt,
         p->drawRoundedRect(fill, rad, rad);
     }
     p->restore();
-    if (pb->textVisible && horiz && !pb->text.isEmpty()) {  // smaller, dimmed text above the bar
+    if (showText && horiz && !pb->text.isEmpty()) {  // smaller, dimmed text above the bar
         p->save();
         QFont f = p->font();
         f.setPointSizeF(f.pointSizeF() * 0.83);
@@ -357,7 +368,7 @@ bool AdwaitaStyle::range_pixelMetric(PixelMetric pm, const QStyleOption *, const
     }
 }
 
-bool AdwaitaStyle::range_sizeFromContents(ContentsType ct, const QStyleOption *opt, const QSize &sz, const QWidget *, QSize &out) const
+bool AdwaitaStyle::range_sizeFromContents(ContentsType ct, const QStyleOption *opt, const QSize &sz, const QWidget *w, QSize &out) const
 {
     const AdwaitaTokens &t = m_tokens;
     if (ct == CT_ProgressBar) {
@@ -366,7 +377,7 @@ bool AdwaitaStyle::range_sizeFromContents(ContentsType ct, const QStyleOption *o
         const int thick = int(t.progress_thickness);
         if (horiz) {
             int h = thick;
-            if (pb && pb->textVisible) h += kProgressTextGap + sz.height();
+            if (showProgressText(pb, w)) h += kProgressTextGap + sz.height();
             out = QSize(qMax(int(t.progress_min_length), sz.width()), h);
         } else {
             out = QSize(thick, 80);  // vertical min length (progressbar.min_length_v)

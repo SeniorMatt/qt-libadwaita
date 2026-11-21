@@ -2,6 +2,7 @@
 #pragma once
 #include "adwaitatokens.h"
 #include <QCommonStyle>
+#include <QIcon>
 #include <QImage>
 #include <QPainter>
 
@@ -68,6 +69,8 @@ public:
     void drawFocus(QPainter *p, const QRectF &r, qreal radius, bool on, const QWidget *w, quint32 idx = 0) const;
     // With a widget the fill follows hover / press with a 200 ms transition; idx separates sub-parts of one widget.
     QColor buttonFill(ButtonKind k, const QStyleOption *opt, const QWidget *w = nullptr, quint32 idx = 0) const;
+    // *-symbolic icons are monochrome masks: GTK paints them in the foreground colour. Returns icon unchanged otherwise.
+    QIcon symbolicIcon(const QIcon &icon, const QColor &fg) const;
 
     // per widget family (adwaitastyle_*.cpp); return true if handled
     bool drawButtonBevel(const QStyleOption *opt, QPainter *p, const QWidget *w) const;

@@ -28,6 +28,7 @@ for scheme, name, fname in [("light", "Libadwaita", "Libadwaita"), ("dark", "Lib
     pos = (120, 233, 171) if dark else (27, 133, 83)
     shade = flat({"r": 0, "g": 0, "b": 6, "a": 0.07 if not dark else 0.25}, V)
     btn = flat({"r": c["window_fg"]["r"], "g": c["window_fg"]["g"], "b": c["window_fg"]["b"], "a": 0.1}, W)
+    sel = flat({**d["accent"]["palette"]["blue"], "a": 0.25}, V)
     sections = {
         "View": (V, shade, fg("view_fg", V), V),
         "Window": (W, flat(c["sidebar_bg"], W), fg("window_fg", W), W),
@@ -36,7 +37,8 @@ for scheme, name, fname in [("light", "Libadwaita", "Libadwaita"), ("dark", "Lib
         "Tooltip": ((0x2e, 0x2e, 0x32) if not dark else (0xf6, 0xf5, 0xf4), (0x2e, 0x2e, 0x32) if not dark else (0xf6, 0xf5, 0xf4),
                     (255, 255, 255) if not dark else (0x24, 0x24, 0x24), W),
         "Complementary": ((0x22, 0x22, 0x26), (0x2e, 0x2e, 0x32), (255, 255, 255), (0x22, 0x22, 0x26)),
-        "Selection": (acc_bg, acc_bg, (255, 255, 255), acc_bg),
+        # libadwaita selections are a translucent accent tint and keep the view foreground (readable on light and dark)
+        "Selection": (sel, sel, fg("view_fg", V), sel),
     }
     out = [f"[General]\nColorScheme={fname}\nName={name}\nshadeSortColumn=false\n",
            "[KDE]\ncontrast=4\n",
@@ -45,7 +47,7 @@ for scheme, name, fname in [("light", "Libadwaita", "Libadwaita"), ("dark", "Lib
            "[ColorEffects:Inactive]\nChangeSelectionColor=false\nEnable=false\n"]
     for sec, (bg, alt, f, under) in sections.items():
         inactive = flat({"r": f[0], "g": f[1], "b": f[2], "a": 0.55}, bg)
-        link = (255, 255, 255) if sec == "Selection" else acc
+        link = acc
         out.append(f"[Colors:{sec}]\nBackgroundAlternate={rgb(alt)}\nBackgroundNormal={rgb(bg)}\n"
                    f"DecorationFocus={rgb(acc_bg)}\nDecorationHover={rgb(acc_bg)}\nForegroundActive={rgb(acc)}\n"
                    f"ForegroundInactive={rgb(inactive)}\nForegroundLink={rgb(link)}\nForegroundNegative={rgb(neg)}\n"

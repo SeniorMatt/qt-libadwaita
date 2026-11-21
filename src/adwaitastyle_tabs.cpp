@@ -16,6 +16,8 @@
 #include <QStyleOptionTabBarBase>
 #include <QStyleOptionTabWidgetFrame>
 #include <QStyleOptionToolButton>
+#include <QSplitter>
+#include <QStatusBar>
 #include <QToolBar>
 #include <QToolButton>
 
@@ -23,6 +25,15 @@ namespace {
 
 constexpr int kTabH = 47;       // AdwTabBar: 6 + 34 (26 min + 2*4 padding) + 6, plus the 1px bottom line; the tab shape is 34px tall, radius 9
 constexpr int kTabInset = 6;
+constexpr int kTabSideL = 12;     // padding left of the title
+constexpr int kTabClose = 20;     // close button box
+// padding right of the title: 12, or room for the close button (6 gap + 20 button + 8 to the tab edge)
+int tabSideR(const QStyleOptionTab *tab)
+{
+    const bool btn = (tab->rightButtonSize.isValid() && tab->rightButtonSize.width() > 0)
+                  || (tab->leftButtonSize.isValid() && tab->leftButtonSize.width() > 0);
+    return btn ? 6 + kTabClose + 8 : 12;
+}
 constexpr int kMenuArrow = 16;
 
 QColor alpha(QColor c, qreal a) { c.setAlphaF(a); return c; }
@@ -57,6 +68,24 @@ quint32 tabKey(const QWidget *w, const QStyleOption *opt)
 {
     auto *tb = qobject_cast<const QTabBar *>(w);
     return tb ? quint32(tb->tabAt(opt->rect.center()) + 1) : 0;
+}
+
+// A splitter handle between two framed panes (scroll areas / frames with a border) draws nothing: the borders of the
+// panes are the lines, a handle line next to them would double them.
+bool framedNeighbours(const QWidget *w)
+{
+    auto *h = qobject_cast<const QSplitterHandle *>(w);
+    if (!h || !h->splitter()) return false;
+    const QSplitter *s = h->splitter();
+    for (int i = 1; i < s->count(); ++i) {
+        if (s->handle(i) != h) continue;
+        auto framed = [](const QWidget *c) {
+            auto *f = qobject_cast<const QFrame *>(c);
+            return f && f->frameShape() != QFrame::NoFrame && f->frameShape() != QFrame::HLine && f->frameShape() != QFrame::VLine;
+        };
+        return framed(s->widget(i - 1)) && framed(s->widget(i));
+    }
+    return false;
 }
 
 bool horizontal(QTabBar::Shape s) { return s == QTabBar::RoundedNorth || s == QTabBar::RoundedSouth || s == QTabBar::TriangularNorth || s == QTabBar::TriangularSouth; }
@@ -147,20 +176,25 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
         return false;
     }
     case PE_IndicatorTabClose: {
-        const bool hover = opt->state & State_MouseOver, down = opt->state & State_Sunken;
+        // AdwTabBar close button: a small round flat button; window-close-symbolic in the foreground colour at the
+        // dimmed opacity until hovered, a round hover / active background, faded as a whole when disabled.
+        const bool enabled = opt->state & State_Enabled;
+        const bool hover = (opt->state & State_MouseOver) && enabled, down = (opt->state & State_Sunken) && enabled;
         p->save();
         p->setRenderHint(QPainter::Antialiasing);
+        if (!enabled) p->setOpacity(p->opacity() * t.disabled_opacity);
         const QRectF r = QRectF(opt->rect);
+        const qreal s = qMin(qMin(r.width(), r.height()), 20.0);
         if (hover || down) {
             p->setPen(Qt::NoPen);
             p->setBrush(alpha(t.window_fg, down ? 0.16 : 0.10));
-            const qreal s = qMin(r.width(), r.height());
             p->drawEllipse(r.center(), s / 2, s / 2);
         }
-        p->setPen(QPen(t.window_fg, 2.0, Qt::SolidLine, Qt::RoundCap));  // window-close-symbolic: bold, full colour
+        const qreal dim = isHc(t) ? 0.9 : 0.55;  // dim-opacity
+        p->setPen(QPen(alpha(t.window_fg, (hover || down) ? 1.0 : dim), 1.6, Qt::SolidLine, Qt::RoundCap));
         const QPointF m = r.center();
-        p->drawLine(m + QPointF(-3.3, -3.3), m + QPointF(3.3, 3.3));
-        p->drawLine(m + QPointF(-3.3, 3.3), m + QPointF(3.3, -3.3));
+        p->drawLine(m + QPointF(-3, -3), m + QPointF(3, 3));
+        p->drawLine(m + QPointF(-3, 3), m + QPointF(3, -3));
         p->restore();
         return true;
     }
@@ -168,8 +202,10 @@ bool AdwaitaStyle::tabs_drawPrimitive(PrimitiveElement pe, const QStyleOption *o
         return true;  // drawn by CE_ToolBar
     case PE_IndicatorToolBarSeparator: {
         const QRect r = opt->rect;
-        if (opt->state & State_Horizontal) p->fillRect(QRect(r.center().x(), r.top() + 6, 1, r.height() - 12), t.border);
-        else p->fillRect(QRect(r.left() + 6, r.center().y(), r.width() - 12, 1), t.border);
+        // short and subtle (GtkSeparator margin): 16px centred, the border colour at 60 %
+        const QColor c = alpha(t.border, t.border.alphaF() * 0.6);
+        if (opt->state & State_Horizontal) p->fillRect(QRect(r.center().x(), r.center().y() - 8, 1, 16), c);
+        else p->fillRect(QRect(r.center().x() - 8, r.center().y(), 16, 1), c);
         return true;
     }
     case PE_IndicatorToolBarHandle:
@@ -233,13 +269,21 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         if (!tab) return false;
         if (horizontal(tab->shape)) {  // AdwTabBar: title centred in the whole tab, the close button floats on the right
             p->save();
-            // 26px sides leave room for a floating close button; without one 12px, so squeezed tabs keep their text.
-            const int side = (tab->rightButtonSize.isValid() && tab->rightButtonSize.width() > 0)
-                          || (tab->leftButtonSize.isValid() && tab->leftButtonSize.width() > 0) ? 26 : 12;
-            const QRect tr = tab->rect.adjusted(side, 0, -side, 0);
+            // 12px left padding; the right side leaves room for the floating close button (see tabSideR). A tab the
+            // app squeezes (dock tab bars, many tabs) gives the padding up before the text is elided.
             const int isz = 16;
             const bool hasIcon = !tab->icon.isNull();
             const QString plain = plainText(tab->text);
+            int sideL = kTabSideL, sideR = tabSideR(tab);
+            const int want = p->fontMetrics().horizontalAdvance(plain) + (hasIcon ? isz + 6 : 0);
+            const int room = tab->rect.width() - 2 - want;  // 2: the hint's own slack
+            if (room < sideL + sideR) {
+                const int extra = qMax(0, sideR - kTabSideL);  // button room stays, the paddings shrink
+                const int pad = qBound(4, (room - extra) / 2, kTabSideL);
+                sideL = pad; sideR = pad + extra;
+                if (room < sideL + sideR) { sideL = 4; sideR = 4 + extra; }
+            }
+            const QRect tr = tab->rect.adjusted(sideL, 0, -sideR, 0);
             const int avail = tr.width() - (hasIcon ? isz + 6 : 0);
             const bool fits = p->fontMetrics().horizontalAdvance(plain) <= avail;
             const int tw = qMin(p->fontMetrics().horizontalAdvance(plain), avail);
@@ -249,7 +293,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
             const int total = tw + (hasIcon ? isz + 6 : 0);
             int x = tr.center().x() - total / 2 + (total % 2 ? 0 : 0);
             if (hasIcon) {
-                tab->icon.paint(p, QRect(x, tr.center().y() - isz / 2 + 1, isz, isz), Qt::AlignCenter,
+                symbolicIcon(tab->icon, t.window_fg).paint(p, QRect(x, tr.center().y() - isz / 2 + 1, isz, isz), Qt::AlignCenter,
                                 (tab->state & State_Enabled) ? QIcon::Normal : QIcon::Disabled);
                 x += isz + 6;
             }
@@ -261,6 +305,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
         QStyleOptionTab o = *tab;
         o.palette.setColor(QPalette::WindowText, withDisabled(t.window_fg, opt));
         o.palette.setColor(QPalette::ButtonText, withDisabled(t.window_fg, opt));
+        if (!o.icon.isNull()) o.icon = symbolicIcon(o.icon, t.window_fg);
         o.state &= ~State_HasFocus;  // never the dotted focus rect
         QCommonStyle::drawControl(CE_TabBarTabLabel, &o, p, w);
         return true;
@@ -290,6 +335,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
     case CE_Splitter: {
         const bool h = opt->state & State_Horizontal;  // horizontal: handle is a vertical line
         const QRect r = opt->rect;
+        if (framedNeighbours(w)) return true;  // the panes already carry a border line: no third line between them
         p->fillRect(h ? QRect(r.center().x(), r.top(), 1, r.height()) : QRect(r.left(), r.center().y(), r.width(), 1), t.border);
         return true;
     }
@@ -303,6 +349,7 @@ bool AdwaitaStyle::tabs_drawControl(ControlElement ce, const QStyleOption *opt, 
             return true;
         }
         if (shape == QFrame::Box || shape == QFrame::Panel || shape == QFrame::StyledPanel) {
+            if (w && qobject_cast<const QStatusBar *>(w->parentWidget())) return true;  // status bar items: no frames
             // Scroll areas stay square: their contents (viewport, headers, scroll bars) would cover rounded corners,
             // and clipping them in third-party apps proved unreliable.
             const bool scroll = qobject_cast<const QAbstractScrollArea *>(w);
@@ -375,6 +422,7 @@ bool AdwaitaStyle::tabs_drawComplexControl(ComplexControl cc, const QStyleOption
         else if (k == Destructive) lo.palette.setColor(QPalette::ButtonText, withDisabled(t.destructive_fg, opt));
         else lo.palette.setColor(QPalette::ButtonText, withDisabled(t.window_fg, opt));
         lo.palette.setColor(QPalette::WindowText, lo.palette.color(QPalette::ButtonText));
+        if (!lo.icon.isNull()) lo.icon = symbolicIcon(lo.icon, k == Suggested ? t.accent_fg : k == Destructive ? t.destructive_fg : t.window_fg);
         p->save();
         { QFont bf = p->font(); bf.setBold(true); p->setFont(bf); lo.font.setBold(true); }  // button label weight 700
         QCommonStyle::drawControl(CE_ToolButtonLabel, &lo, p, w);
@@ -427,8 +475,8 @@ bool AdwaitaStyle::tabs_subElementRect(SubElement se, const QStyleOption *opt, c
     case SE_TabBarTabRightButton: {
         auto *tab = qstyleoption_cast<const QStyleOptionTab *>(opt);
         if (!tab || !horizontal(tab->shape)) return false;
-        const int sz = 20;  // glyph centre 16px inside the pill's right edge
-        out = QRect(tab->rect.right() + 1 - 3 - 16 - sz / 2 - 1, tab->rect.top() + (tab->rect.height() - 1 - sz) / 2, sz, sz);
+        const int sz = kTabClose;  // 8px from the tab edge (4.5 inside the pill)
+        out = QRect(tab->rect.right() + 1 - 8 - sz, tab->rect.top() + (tab->rect.height() - 1 - sz) / 2, sz, sz);
         return true;
     }
     case SE_TabBarTabLeftButton:
@@ -474,10 +522,13 @@ bool AdwaitaStyle::tabs_subControlRect(ComplexControl cc, const QStyleOptionComp
     return false;
 }
 
-bool AdwaitaStyle::tabs_pixelMetric(PixelMetric pm, const QStyleOption *, const QWidget *, int &out) const
+bool AdwaitaStyle::tabs_pixelMetric(PixelMetric pm, const QStyleOption *opt, const QWidget *, int &out) const
 {
     switch (pm) {
-    case PM_TabBarTabHSpace: out = 28; return true;
+    case PM_TabBarTabHSpace:  // Qt elides the title to tab width - this - the close button when an app squeezes the
+    {   auto *tab = qstyleoption_cast<const QStyleOptionTab *>(opt);
+        out = (tab && !horizontal(tab->shape)) ? 28 : 8; return true;  // tab (dock tab bars). Only the minimum paddings (4 + 4): CE_TabBarTabLabel gives up its 12 px sides first.
+    }
     case PM_TabBarTabVSpace: out = 0; return true;
     case PM_TabBarTabShiftHorizontal:
     case PM_TabBarTabShiftVertical:
@@ -515,8 +566,9 @@ bool AdwaitaStyle::tabs_sizeFromContents(ContentsType ct, const QStyleOption *op
             // The label is centred between 26px side paddings (room for the floating close button, see
             // CE_TabBarTabLabel); make the tab wide enough for the whole title unless the app squeezes it.
             const int icon = tab->icon.isNull() ? 0 : 16 + 6;
-            const int side = (tab->rightButtonSize.width() > 0 || tab->leftButtonSize.width() > 0) ? 26 : 12;
-            s.setWidth(qMax(s.width(), tab->fontMetrics.horizontalAdvance(plainText(tab->text)) + icon + 2 * side + 2));
+            // exactly the title plus paddings: Qt's own sum (28 px h-space + button + text) left the title off-centre
+            // and wide tabs that the dock tab bars then squeezed until the text elided to "Do..."
+            s.setWidth(tab->fontMetrics.horizontalAdvance(plainText(tab->text)) + icon + kTabSideL + tabSideR(tab) + 2);
         }
         else s.setWidth(qMax(s.width(), kTabH));
         out = s;
