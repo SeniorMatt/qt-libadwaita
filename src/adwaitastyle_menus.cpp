@@ -89,6 +89,14 @@ bool compositorActive()
 
 bool isComboPopup(const QWidget *w);
 
+// Does the popup's native window have an alpha channel? X11 reports the visual it really got. Wayland does not
+// report it back (format() stays without alpha even for translucent surfaces); there the buffer follows the
+// requested format, so that is what counts.
+static bool windowHasAlpha(const QWindow *wh)
+{
+    return QGuiApplication::platformName() == QLatin1String("xcb") ? wh->format().hasAlpha() : wh->requestedFormat().hasAlpha();
+}
+
 // Popover shadow margin of a popup widget: kShadow when it is translucent, else the panel is a plain 1px frame.
 int popupMargin(const QWidget *w)
 {
@@ -199,7 +207,7 @@ public:
         // recreates it right away.
         if (e->type() == QEvent::Show && m_w->testAttribute(Qt::WA_TranslucentBackground)) {
             QWindow *wh = m_w->windowHandle();
-            if (wh && wh->handle() && !wh->format().hasAlpha()) {
+            if (wh && wh->handle() && !windowHasAlpha(wh)) {
                 QSurfaceFormat f = wh->requestedFormat();
                 f.setAlphaBufferSize(8);
                 wh->destroy();
@@ -294,7 +302,7 @@ bool AdwaitaStyle::menus_drawPrimitive(PrimitiveElement pe, const QStyleOption *
         // Translucent but the window still got no alpha channel (a platform that cannot do it): the shadow margin
         // would be black, so paint a plain square panel over the whole window instead.
         const QWindow *wh = translucent ? w->window()->windowHandle() : nullptr;
-        if (wh && wh->handle() && !wh->format().hasAlpha()) {
+        if (wh && wh->handle() && !windowHasAlpha(wh)) {
             p->save();
             p->fillRect(opt->rect, t.popover_bg);
             p->setPen(QPen(menuRing(t), 1));
