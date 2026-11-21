@@ -22,6 +22,7 @@
 #include <QStyleOption>
 #include <QDir>
 #include <QFile>
+#include <QSaveFile>
 #include <QWidget>
 
 AdwaitaStyle::AdwaitaStyle()
@@ -94,7 +95,9 @@ void AdwaitaStyle::syncKdeColorScheme() const
 {
     if (qEnvironmentVariableIntValue("ADWAITA_KEEP_APP_PALETTE") || !qApp) return;
     const QString cur = qApp->property("KDE_COLOR_SCHEME_PATH").toString();
-    if (cur.isEmpty() || QFileInfo(cur).fileName().startsWith(QLatin1String("Libadwaita"))) return;  // kdeglobals is used / ours
+    // Only replace KColorSchemeManager's Breeze fallback: a scheme an app picked on purpose (Kate's scheme menu,
+    // Kinoklip's own schemes) is left alone.
+    if (cur.isEmpty() || !QFileInfo(cur).fileName().startsWith(QLatin1String("Breeze"))) return;
     const QString v = m_tokens.variant;
     const QString name = QLatin1String("Libadwaita") + (v.startsWith("hc") ? "HighContrast" : "") + (v.endsWith("dark") ? "Dark" : "");
     QString dir = QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation) + QLatin1String("/qt-libadwaita");
@@ -103,11 +106,13 @@ void AdwaitaStyle::syncKdeColorScheme() const
     QFile src(QLatin1String(":/qt-libadwaita/kde-colors/") + name + QLatin1String(".colors"));
     if (!src.open(QIODevice::ReadOnly)) return;
     const QByteArray data = src.readAll();
-    QFile dst(path);
-    if (!dst.exists() || dst.size() != data.size()) {
-        if (!dst.open(QIODevice::WriteOnly | QIODevice::Truncate)) return;
+    QFile cached(path);
+    if (!cached.open(QIODevice::ReadOnly) || cached.readAll() != data) {
+        cached.close();
+        QSaveFile dst(path);  // temp file + rename: other apps may be reading it right now
+        if (!dst.open(QIODevice::WriteOnly)) return;
         dst.write(data);
-        dst.close();
+        if (!dst.commit()) return;
     }
     qApp->setProperty("KDE_COLOR_SCHEME_PATH", path);
 }
